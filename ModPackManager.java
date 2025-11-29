@@ -424,6 +424,10 @@ public class ModPackManager extends Application {
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++ + 7,maxProgress);
                         }
+                        if (mod.site == ModPackManagerController.Site.NEXUSMODS)
+                        {
+                            //TODO: Code Nexus Mods API Access back end
+                        }
                         mod.status = Mod.Status.NOTINSTALLED;
                         updateProgress(pogress++, maxProgress);
                     }
@@ -497,5 +501,13 @@ public class ModPackManager extends Application {
             if (!item.property.get()) allChecked = false;
         }
         box.setSelected(allChecked);
+    }
+    protected void getAPIKeyButton()
+    {
+        //TODO: Add a button to request API key for Nexus
+    }
+    protected void getModDeleteButton()
+    {
+        //TODO: Add delete button
     }
 }

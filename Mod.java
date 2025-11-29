@@ -19,6 +19,7 @@ public class Mod {
     ModPackManagerController.Site site;
     int index;
     SimpleBooleanProperty property;
+    boolean isDeleted = false;
     public Mod(String n, String l, int i, ModPackManagerController.Site s, Status stat) {
         name = new SimpleStringProperty(n);
         link = l;
@@ -62,9 +63,10 @@ public class Mod {
         return string;
     }
 
-    public ObservableValue<Boolean> getBooleanProperty()
+    public void delete()
     {
-        return property;
+        isDeleted = true;
+        //TODO: Add a way to safely delete the mod
     }
 
     enum Status
