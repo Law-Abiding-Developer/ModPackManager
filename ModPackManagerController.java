@@ -10,17 +10,9 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 
 public class ModPackManagerController {
-    @FXML
-    private Label welcomeText;
 
     public static ObservableMap<Mod, SimpleBooleanProperty> checked = FXCollections.observableHashMap();
 
-    @FXML
-    protected void onHelloButtonClick() {
-        welcomeText.setText("Welcome to Mod Pack Manager! The one-stop-shop for all your modpacks!");
-        Pos pos = Pos.TOP_CENTER;
-        welcomeText.setAlignment(pos);
-    }
 
     protected static ObservableValue<String> cellFactory(TableColumn.CellDataFeatures<ModPack, String> cell)
     {
