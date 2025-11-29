@@ -235,6 +235,7 @@ public class ModPackManager extends Application {
                         modsFileWriter.close();
                     }
                     saveDataWrite.close();
+                    if (close != null) close.handle(e);
                 }
                 catch (Exception ex)
                 {
@@ -244,6 +245,7 @@ public class ModPackManager extends Application {
                         message += "at " + i + System.lineSeparator();
                     }
                     ModPackManagerController.showError("Error", ex.getClass() + " " + System.lineSeparator() + message);
+                    if (close != null) close.handle(e);
 
                 }
             });
