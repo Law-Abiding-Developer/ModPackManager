@@ -185,6 +185,7 @@ public class ModPackManager extends Application {
                 });
                 return row;
             });
+            mods.setPlaceholder(new Label("Select a modpack to view mods"));
 
             HBox tableBox = new HBox(10, modpacks, mods);
             HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton());
