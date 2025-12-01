@@ -95,12 +95,15 @@ public class ModPackManager extends Application {
                 }
                 catch (Throwable ex)
                 {
-                    String message = "";
+                    Platform.runLater(() ->
+                    {
+                        String message = "";
                     for (var i : ex.getStackTrace())
                     {
                         message += "at " + i + System.lineSeparator();
                     }
                     ModPackManagerController.showError("Error", ex.getClass() + " " + System.lineSeparator() + message);
+                    });
                 }
             });
             var thread = new Thread(task);
@@ -441,9 +444,12 @@ public class ModPackManager extends Application {
             });
             task.setOnFailed(event -> {
                 progress.close();
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Download failed!");
-                alert.setContentText(event.getSource().getMessage());
-                alert.showAndWait();
+                String message = "";
+                for (var i : event.getSource().getException().getStackTrace())
+                {
+                    message += "at " + i + System.lineSeparator();
+                }
+                ModPackManagerController.showError("Error", e.getClass() + " " + System.lineSeparator() + message);
             });
             task.setOnCancelled(f -> progress.close());
             progress.initModality(Modality.NONE);
