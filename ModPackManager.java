@@ -379,7 +379,6 @@ public class ModPackManager extends Application {
                     updateProgress(pogress, maxProgress);
                     for (var mod : mods.getItems())
                     {
-                        Thread.sleep(1000);
                         //TODO: code backend for downloading site
                         if (!mod.property.get()) continue;
                         if (modPack.isDeleted) cancel(true);
