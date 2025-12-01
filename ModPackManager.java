@@ -41,7 +41,7 @@ public class ModPackManager extends Application {
             if (parentDir != null && !parentDir.exists())
                 if (!parentDir.mkdirs())
                     throw new RuntimeException("Could not create the parent file for save data");
-            Task<Void> task = new Task<>() {
+            Task<Void> task = new Task<>() {//TODO: Add way to share mods.
                 @Override
                 protected Void call() throws Exception {
                     if (!saveData.exists() || saveData.length() == 0) return null;
