@@ -162,6 +162,7 @@ public class ModPackManager extends Application {
                 return string;
             });
             mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
+            mods.setPlaceholder(new Label("Select a modpack to view mods"));
 
             TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack");
             modPackColumn.setCellValueFactory(ModPackManagerController::cellFactory);
@@ -185,7 +186,8 @@ public class ModPackManager extends Application {
                 });
                 return row;
             });
-            mods.setPlaceholder(new Label("Select a modpack to view mods"));
+
+
 
             HBox tableBox = new HBox(10, modpacks, mods);
             HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton());
