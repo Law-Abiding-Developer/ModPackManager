@@ -58,7 +58,7 @@ public class ModPackManager extends Application {
                         var game = parts[3].trim();
                         var modPack = new ModPack(name, FXCollections.observableArrayList(),
                                 modFilePath, version, game);
-                        String mods = parts[4].replace("Mods: ", "").trim();
+                        String mods = "data/" + parts[4].replace("Mods: ", "").trim();
                         var modsFile = new File(mods);
                         if (!modsFile.exists() || modsFile.length() == 0)
                         {
@@ -217,7 +217,7 @@ public class ModPackManager extends Application {
                             modsFileWriter.write("Mod: " + mod.name.get() + ", "
                             + mod.link + ", " + mod.index + ", "
                             + ModPackManagerController.convertToString(mod.site) + ", "
-                            + mod.parseStatusObservable().get() + " ");
+                            + mod.parseStatusObservable().get() + ", ");
                             if (mod.currentFile != null)
                                 modsFileWriter.write(mod.currentFile.getAbsolutePath()
                                         + System.lineSeparator());
