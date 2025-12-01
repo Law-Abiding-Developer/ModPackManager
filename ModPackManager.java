@@ -1,9 +1,7 @@
 package com.lad.mmp;
 
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,7 +9,6 @@ import javafx.application.Application;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
@@ -21,18 +18,13 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.CharBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileAttribute;
-
 public class ModPackManager extends Application {
     TableView<ModPack> modpacks = new TableView<>();
     ObservableList<ModPack> list = FXCollections.observableArrayList();
