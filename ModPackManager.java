@@ -192,9 +192,20 @@ public class ModPackManager extends Application {
             modpacks.setMaxWidth(592.5);
             modpacks.setMaxHeight(400);
 
+            TextArea text = new TextArea("""
+                    Unknown Data
+                    """);
+            text.setWrapText(true);
+            text.setEditable(false);
+            text.setMaxWidth(400);
+            text.setMaxHeight(1000000000);
+            text.setPrefHeight(1000000000);
+            ScrollPane pane = new ScrollPane(text);
+            pane.setMaxWidth(417.5);
+            pane.setPrefWidth(417.5);
+            pane.setMaxHeight(400);
 
-
-            HBox tableBox = new HBox(10, modpacks, mods);
+            HBox tableBox = new HBox(10, modpacks, mods, pane);
             HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton());
             Label topText = new Label("""
                     Welcome to Mod Pack Manager v0.5.0!
