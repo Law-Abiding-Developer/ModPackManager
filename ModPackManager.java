@@ -526,4 +526,8 @@ public class ModPackManager extends Application {
     {
         //TODO: Add delete button
     }
+    protected void getModImportButton()
+    {
+        //TODO: Add file import button
+    }
 }
