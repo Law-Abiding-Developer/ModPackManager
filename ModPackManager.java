@@ -163,12 +163,15 @@ public class ModPackManager extends Application {
             });
             mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
             mods.setPlaceholder(new Label("Select a modpack to view mods"));
+            mods.setMaxWidth(670);
+            mods.setMaxHeight(400);
 
             TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack");
             modPackColumn.setCellValueFactory(ModPackManagerController::cellFactory);
             TableColumn<ModPack, Integer> modPackValueColumn = new TableColumn<>("Size");
             modPackValueColumn.setCellValueFactory(callBack ->
                     callBack.getValue().size.asObject());
+            modPackValueColumn.setPrefWidth(50);
             TableColumn<ModPack, String> modPackGameColumn = new TableColumn<>("Game");
             modPackGameColumn.setCellValueFactory(e -> e.getValue().game);
             TableColumn<ModPack, String> modPackVersionColumn = new TableColumn<>("Version");
@@ -186,6 +189,8 @@ public class ModPackManager extends Application {
                 });
                 return row;
             });
+            modpacks.setMaxWidth(592.5);
+            modpacks.setMaxHeight(400);
 
 
 
@@ -198,7 +203,7 @@ public class ModPackManager extends Application {
             HBox textBox = new HBox(10, topText);
             textBox.setStyle("-fx-font-size: 26px;");
             VBox root = new VBox(10, textBox, tableBox, buttonBox);
-            Scene scene = new Scene(root, 900, 550);
+            Scene scene = new Scene(root, 1110, 550);
             stage.setTitle("Mod Pack Manager");
             stage.setScene(scene);
             var close = stage.getOnCloseRequest();
