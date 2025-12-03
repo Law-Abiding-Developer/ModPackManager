@@ -30,7 +30,8 @@ public class ModPackManager extends Application {
     ObservableList<ModPack> list = FXCollections.observableArrayList();
 
     TableView<Mod> mods = new TableView<>();
-    File saveData = new File("data/MMPSaveData.txt");
+    String baseSavePath = System.getProperty("user.home");
+    File saveData = new File(baseSavePath + File.separator + ".modpackmanager" + File.separator + "data" + File.separator + "MMPSaveData.txt");
     FileWriter saveDataWrite;
     CheckBox box = new CheckBox();
 
