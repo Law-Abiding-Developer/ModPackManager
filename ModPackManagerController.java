@@ -44,6 +44,16 @@ public class ModPackManagerController {
         alert.showAndWait();
     }
 
+    public static void showException(Exception e)
+    {
+        String message = "";
+        for (var i : e.getStackTrace())
+        {
+            message += "at " + i + System.lineSeparator();
+        }
+        showError("Error", e.getClass() + " " + e.getMessage() + System.lineSeparator() + message);
+
+    }
     protected static TableCell<Mod, Boolean> checkboxFactory(TableColumn<Mod, Boolean> c)
     {
         var cell = CheckBoxTableCell.forTableColumn(c).call(c);
