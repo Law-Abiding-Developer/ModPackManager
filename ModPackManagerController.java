@@ -44,7 +44,7 @@ public class ModPackManagerController {
         alert.showAndWait();
     }
 
-    public static void showException(Exception e)
+    public static void showException(Throwable e)
     {
         String message = "";
         for (var i : e.getStackTrace())
