@@ -3,12 +3,7 @@ package com.lad.mmp;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableBooleanValue;
-import javafx.beans.value.ObservableValue;
-import javafx.css.SimpleStyleableBooleanProperty;
-
-import java.io.File;
+import java.util.List;
 
 public class Mod {
     SimpleStringProperty name;
@@ -27,19 +22,6 @@ public class Mod {
         site = s;
         status = stat;
         property = new SimpleBooleanProperty();
-        /*{
-            @Override
-            public boolean get()
-            {
-                return selected;
-            }
-            @Override
-            public void set(boolean b)
-            {
-                selected = b;
-                super.set(b);
-            }
-        }*/;
     }
     public Mod(String n, String l, int i, ModPackManagerController.Site s, String stat) {
         name = new SimpleStringProperty(n);
