@@ -55,7 +55,7 @@ public class ModPackManagerController {
         return cell;
     }
 
-    enum Site {
+    public enum Site {
         NULL,
         REIKA,
         GITHUB,

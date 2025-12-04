@@ -69,7 +69,7 @@ public class Mod {
         //TODO: Add a way to safely delete the mod
     }
 
-    enum Status
+    public enum Status
     {
         NULL,
         INSTALLED,
