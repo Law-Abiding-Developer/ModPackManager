@@ -98,13 +98,7 @@ public class ModPackManager extends Application {
                 {
                     Platform.runLater(() ->
                     {
-                        String message = "";
-                    for (var i : ex.getStackTrace())
-                    {
-                        message += "at " + i + System.lineSeparator();
-                    }
-                    ModPackManagerController.showError("Error", ex.getClass() + " " + System.lineSeparator() + message);
-                    });
+                    ModPackManagerController.showException(ex);});
                 }
             });
             var thread = new Thread(task);
