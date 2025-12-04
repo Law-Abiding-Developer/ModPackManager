@@ -14,7 +14,7 @@ public class Mod {
     SimpleStringProperty name;
     String link;
     SimpleStringProperty version;
-    File currentFile;
+    ModFolder currentFile;
     Status status;
     ModPackManagerController.Site site;
     int index;
@@ -63,10 +63,47 @@ public class Mod {
         return string;
     }
 
-    public void delete()
+    /**
+     * Method to safely delete a mod and stop all of it's tasks
+     * @param activeList The list which contains the mod
+     * @return false if something throws an exception. true if all was successful
+     */
+    public void delete(List<Mod> activeList)
     {
-        isDeleted = true;
-        //TODO: Add a way to safely delete the mod
+        try
+        {
+            isDeleted = true;
+            if (currentFile == null || !currentFile.deleteFolder())
+                ModPackManagerController.showError("Mod File Delete Failure",
+                    "Failed to delete selected mod, " + name.get() + "'s, file");
+            if (currentFile != null)
+            {
+                currentFile = null;
+            }
+            if (!activeList.remove(this))
+                ModPackManagerController.showError("Mod List Removal Failure", "Mod, " + name + ", does not exist in the list");
+            if (name != null)
+            {
+                name.unbind();
+                name = null;
+            }
+            if (version != null)
+            {
+                version.unbind();
+                version = null;
+            }
+            if (property != null)
+            {
+                property.unbind();
+                property = null;
+            }
+            link = null;
+            index = -1;
+        }
+        catch (Exception e)
+        {
+            ModPackManagerController.showException(e);
+        }
     }
 
     public enum Status
