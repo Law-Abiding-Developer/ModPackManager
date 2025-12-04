@@ -215,7 +215,7 @@ public class ModPackManager extends Application {
             pane.setMaxHeight(400);
 
             HBox tableBox = new HBox(10, modpacks, mods, pane);
-            HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton());
+            HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton(),getModDeleteButton());
             Label topText = new Label("""
                     Welcome to Mod Pack Manager v0.5.0!
                     This is a mod manager where nothing happens without your explicit permission.
