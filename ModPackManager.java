@@ -94,7 +94,7 @@ public class ModPackManager extends Application {
                             var mod = new Mod(modName, modLink, Integer.parseInt(modIndex), site, modStatus);
                             String modsFilePath = "";
                             if (modParts.length > 5) modsFilePath = modParts[5];
-                            mod.currentFile = new File(modsFilePath);
+                            mod.currentFile = new ModFolder(modsFilePath);
                             modPack.mods.add(mod);
                         }
                         Platform.runLater(() -> modpacks.getItems().add(modPack));
@@ -531,9 +531,32 @@ public class ModPackManager extends Application {
     {
         //TODO: Add a button to request API key for Nexus
     }
-    protected void getModDeleteButton()
+    protected Button getModDeleteButton()
     {
-        //TODO: Add delete button
+        Button modDeleteButton = new Button("Delete Selected Mod(s)");
+        modDeleteButton.setOnAction(e ->
+        {
+            if (shiftKeyPressed)
+                for (var modItem : mods.getItems())
+                    if (modItem.property.get())
+                        modItem.delete(mods.getItems());
+            else
+            {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Confirm Deletion");
+                alert.setHeaderText("Delete Selected Mod(s)?");
+                alert.setContentText("Are you sure you want to delete this(these) Mod(s)? THIS WILL DELETE ANY AND ALL DATA THE MOD HAS (except mod save data or options)");
+                var item = alert.showAndWait();
+                item.ifPresent(response ->{
+                    if (response == ButtonType.OK)
+                        for (var mod : mods.getItems())
+                            if (mod.property.get())
+                                mod.delete(mods.getItems());
+            });
+
+            }
+        });
+        return modDeleteButton;
     }
     protected void getModImportButton()
     {
