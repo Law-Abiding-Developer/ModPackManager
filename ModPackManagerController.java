@@ -9,10 +9,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 
 public class ModPackManagerController {
-
-    public static ObservableMap<Mod, SimpleBooleanProperty> checked = FXCollections.observableHashMap();
-
-
     protected static ObservableValue<String> cellFactory(TableColumn.CellDataFeatures<ModPack, String> cell)
     {
         return cell.getValue().name;
