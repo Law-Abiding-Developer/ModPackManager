@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
@@ -173,7 +174,7 @@ public class ModPackManager extends Application {
                 return string;
             });
             mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
-            mods.setPlaceholder(new Label("Select a modpack to view mods"));
+            mods.setPlaceholder(new Label("Select a modpack to view mods" + System.lineSeparator() + "Unless the modpack has 0 mods"));
             mods.setMaxWidth(670);
             mods.setMaxHeight(400);
 
@@ -187,7 +188,7 @@ public class ModPackManager extends Application {
             modPackGameColumn.setCellValueFactory(e -> e.getValue().game);
             TableColumn<ModPack, String> modPackVersionColumn = new TableColumn<>("Version");
             modPackVersionColumn.setCellValueFactory(e -> e.getValue().version);
-            modpacks.getColumns().addAll(modPackColumn, modPackValueColumn, modPackGameColumn, modPackVersionColumn);
+            modpacks.getColumns().addAll(getModPackCheckBoxColumn(), modPackColumn, modPackValueColumn, modPackGameColumn, modPackVersionColumn);
             modpacks.setItems(list);
             modpacks.setRowFactory(tv -> {
                 TableRow<ModPack> row = new TableRow<>();
@@ -324,7 +325,7 @@ public class ModPackManager extends Application {
                     new ChoiceBox<>(FXCollections.observableArrayList("Subnautica", ""));
             gameChoice.setValue("");
             ChoiceBox<String> versionChoice =
-                    new ChoiceBox<>(FXCollections.observableArrayList("Legacy", "March 2023", "2025", ""));
+                    new ChoiceBox<>(FXCollections.observableArrayList("Legacy", ""));
             versionChoice.setValue("");
             TextField name = new TextField();
             name.setPromptText("Name");
@@ -483,15 +484,15 @@ public class ModPackManager extends Application {
         modsSelected.setCellValueFactory(callBack ->
                 callBack.getValue().property);
         modsSelected.setCellFactory(ModPackManagerController::checkboxFactory);
-        box.setOnMouseClicked(mouseEvent ->
+        modBox.setOnMouseClicked(mouseEvent ->
         {
-            boolean set = box.isSelected();
+            boolean set = modBox.isSelected();
             for (var item : mods.getItems())
             {
                 item.property.set(set);
             }
         });
-        modsSelected.setGraphic(box);
+        modsSelected.setGraphic(modBox);
         modsSelected.setPrefWidth(30);
         return modsSelected;
     }
@@ -586,7 +587,7 @@ public class ModPackManager extends Application {
         {
             if (!item.property.get()) allChecked = false;
         }
-        box.setSelected(allChecked);
+        modBox.setSelected(allChecked);
     }
     protected void getAPIKeyButton()
     {
