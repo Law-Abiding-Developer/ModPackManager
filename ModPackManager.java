@@ -24,7 +24,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.URI;
@@ -41,7 +40,8 @@ public class ModPackManager extends Application {
     String baseSavePath = System.getProperty("user.home");
     File saveData = new File(baseSavePath + File.separator + ".modpackmanager" + File.separator + "data" + File.separator + "MMPSaveData.txt");
     FileWriter saveDataWrite;
-    CheckBox box = new CheckBox();
+    CheckBox modBox = new CheckBox();
+    CheckBox modpackBox = new CheckBox();
     boolean shiftKeyPressed = false;
 
     @Override
@@ -59,6 +59,7 @@ public class ModPackManager extends Application {
             Task<Void> task = new Task<>() {//TODO: Add way to share mods.
                 @Override
                 protected Void call() throws Exception {
+                    saveDataWrite = new FileWriter(saveData, true);
                     if (!saveData.exists() || saveData.length() == 0) return null;
                     var string = Files.readString(saveData.toPath());
                     var subStrings = string.split("ModPack: ");
@@ -73,7 +74,8 @@ public class ModPackManager extends Application {
                         var game = parts[3].trim();
                         var modPack = new ModPack(name, FXCollections.observableArrayList(),
                                 modFilePath, version, game);
-                        String mods = "data/" + parts[4].replace("Mods: ", "").trim();
+                        String mods = parts[4].replace("Mods: ", "").trim();
+                        modPack.saveDataWriter = new FileWriter(mods, true);
                         var modsFile = new File(mods);
                         if (!modsFile.exists() || modsFile.length() == 0)
                         {
@@ -227,51 +229,6 @@ public class ModPackManager extends Application {
             stage.setTitle("Mod Pack Manager");
             stage.setScene(scene);
             var close = stage.getOnCloseRequest();
-            stage.setOnCloseRequest(e ->
-            {
-                try
-                {
-                    if (!saveData.exists() && !saveData.createNewFile()) return;
-                    saveDataWrite = new FileWriter(saveData);
-                    for (var modPack : modpacks.getItems())
-                    {
-                        saveDataWrite.write("ModPack: " + modPack.name.get() + ", "
-                                + modPack.modFilePath.get() + ", " + modPack.version.get()
-                                + ", " + modPack.game.get() + ", Mods: " + modPack.name.get()
-                                + "SaveData.txt" + System.lineSeparator());
-                        saveDataWrite.flush();
-                        if (modPack.mods.isEmpty()) continue;
-                        var modsFile = new File(saveData.getParentFile().getPath() + "/" + modPack.name.get() + "SaveData.txt");
-                        var modsFileWriter = new FileWriter(modsFile);
-                        for (var mod : modPack.mods)
-                        {
-                            modsFileWriter.write("Mod: " + mod.name.get() + ", "
-                            + mod.link + ", " + mod.index + ", "
-                            + ModPackManagerController.convertToString(mod.site) + ", "
-                            + mod.parseStatusObservable().get() + ", ");
-                            if (mod.currentFile != null)
-                                modsFileWriter.write(mod.currentFile.getAbsolutePath()
-                                        + System.lineSeparator());
-                            else modsFileWriter.write(System.lineSeparator());
-                            modsFileWriter.flush();
-                        }
-                        modsFileWriter.close();
-                    }
-                    saveDataWrite.close();
-                    if (close != null) close.handle(e);
-                }
-                catch (Exception ex)
-                {
-                    String message = "";
-                    for (var i : ex.getStackTrace())
-                    {
-                        message += "at " + i + System.lineSeparator();
-                    }
-                    ModPackManagerController.showError("Error", ex.getClass() + " " + System.lineSeparator() + message);
-                    if (close != null) close.handle(e);
-
-                }
-            });
             stage.show();
         } catch (Exception e) {
             String message = "";
@@ -289,7 +246,8 @@ public class ModPackManager extends Application {
         newModButton.setOnAction(e ->
         {
             ModPack selected = modpacks.getSelectionModel().getSelectedItem();
-            if (selected != null) {
+            if (selected != null)
+            {
                 Dialog addMod = new Dialog();
                 addMod.setTitle("Add Details");
                 addMod.setHeaderText("Fill the boxes below with the mod info");
@@ -312,13 +270,30 @@ public class ModPackManager extends Application {
                 addMod.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
                 addMod.setResultConverter(button ->
                 {
-                    if (button == ButtonType.OK)
+                    try
                     {
-                        Mod mod = new Mod(nameField.getText(), linkField.getText(), selected.mods.size(),
-                                ModPackManagerController.ParseFromString(choice.getValue()),
-                                Mod.Status.NOTINSTALLED);
-                        mod.property.addListener(this::modListener);
-                        return mod;
+                        if (button == ButtonType.OK)
+                        {
+                            Mod mod = new Mod(nameField.getText(), linkField.getText(), selected.mods.size(),
+                                    ModPackManagerController.ParseFromString(choice.getValue()),
+                                    Mod.Status.NOTINSTALLED);
+                            mod.property.addListener(this::modListener);
+                            var modsFileWriter = selected.saveDataWriter;
+                            modsFileWriter.write("Mod: " + mod.name.get() + ", "
+                                    + mod.link + ", " + mod.index + ", "
+                                    + ModPackManagerController.convertToString(mod.site) + ", "
+                                    + mod.parseStatusObservable().get() + ", ");
+                            if (mod.currentFile != null)
+                                modsFileWriter.write(mod.currentFile.getAbsolutePath()
+                                        + System.lineSeparator());
+                            else modsFileWriter.write(System.lineSeparator());
+                            modsFileWriter.flush();
+                            return mod;
+                        }
+                    }
+                    catch (Exception f)
+                    {
+                        ModPackManagerController.showException(f);
                     }
                     return null;
                 });
@@ -361,12 +336,27 @@ public class ModPackManager extends Application {
             addModPack.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             addModPack.setResultConverter(object ->
             {
-                if (object == ButtonType.OK)
+                try
                 {
-                    return new ModPack(name.getText(), FXCollections.observableArrayList(),
-                            gamePath.getText(), gameChoice.getValue(), versionChoice.getValue());
+                    if (object == ButtonType.OK)
+                    {
+                        var modPack = new ModPack(name.getText(), FXCollections.observableArrayList(),
+                                gamePath.getText(), gameChoice.getValue(), versionChoice.getValue());
+                        saveDataWrite.write("ModPack: " + modPack.name.get() + ", "
+                                + modPack.modFilePath.get() + ", " + modPack.version.get()
+                                + ", " + modPack.game.get() + ", Mods: " + saveData.getParentFile().getAbsolutePath() + "/" + modPack.name.get()
+                                + "SaveData.txt" + System.lineSeparator());
+                        saveDataWrite.flush();
+                        modPack.saveDataWriter = new FileWriter(saveData.getParentFile().getAbsolutePath() + "/" + modPack.name.get() + "SaveData.ext", true);
+                        return modPack;
+                    }
+                    return null;
                 }
-                return null;
+                catch (Exception f)
+                {
+                    ModPackManagerController.showException(f);
+                    return null;
+                }
             });
             var string = addModPack.showAndWait();
             if (string.isPresent())
@@ -505,16 +495,87 @@ public class ModPackManager extends Application {
         modsSelected.setPrefWidth(30);
         return modsSelected;
     }
+    private TableColumn<ModPack, Boolean> getModPackCheckBoxColumn()
+    {
+        TableColumn<ModPack, Boolean> modPacks = new TableColumn<>();
+        modPacks.setCellValueFactory(callBack ->
+                callBack.getValue().isSelected);
+        modPacks.setCellFactory(column ->
+        {
+            var cell = CheckBoxTableCell.forTableColumn(column).call(column);
+            cell.setOnMouseClicked(event ->
+            {
+                var modpack = cell.getTableView().getItems().get(cell.getIndex());
+                modpack.isSelected.set(!modpack.isSelected.get());
+            });
+            return cell;
+        });
+        modpackBox.setOnMouseClicked(event ->
+        {
+            boolean set = modpackBox.isSelected();
+            for (var item : modpacks.getItems())
+            {
+                item.isSelected.set(set);
+            }
+        });
+        modPacks.setGraphic(modpackBox);
+        modPacks.setPrefWidth(30);
+        return modPacks;
+    }
     private Button getDeleteButton()
     {
-        Button deleteButton = new Button("Delete Selected ModPack");
+        Button deleteButton = new Button("Delete Selected Mod Pack");
         deleteButton.setOnAction(e ->
         {
-            var modpack = modpacks.getSelectionModel().getSelectedItem();
-            modpack.isDeleted = true;
-            modpacks.getItems().remove(modpack);
-            mods.setItems(null);
-            mods.refresh();
+            if (shiftKeyPressed)
+            {
+                for (var item : modpacks.getItems())
+                {
+                    if (item.isSelected.get())
+                    {
+                        item.isDeleted = true;
+                        try {
+                            var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
+                            if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
+                            item.saveDataWriter.close();
+                        } catch (Exception ex) {
+                            ModPackManagerController.showException(ex);
+                        }
+                        modpacks.getItems().remove(item);
+                        mods.setItems(null);
+                        mods.refresh();
+                    }
+                }
+            }
+            else
+            {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Confirm Deletion");
+                alert.setHeaderText("Delete Selected Mod Pack(s)?");
+                alert.setContentText("Are you sure you want to delete this(these) Mod Pack(s)? THIS WILL DELETE ANY AND ALL DATA THE MOD PACK HAS, INCLUDING MODS IN THE MODPACK (except mod save data or options)");
+                var type = alert.showAndWait();
+                type.ifPresent(response ->
+                {
+                    if (response == ButtonType.OK)
+                        for (var item : modpacks.getItems())
+                        {
+                            if (item.isSelected.get())
+                            {
+                                item.isDeleted = true;
+                                try {
+                                    var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
+                                    if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
+                                    item.saveDataWriter.close();
+                                } catch (Exception ex) {
+                                    ModPackManagerController.showException(ex);
+                                }
+                                modpacks.getItems().remove(item);
+                                mods.setItems(null);
+                                mods.refresh();
+                            }
+                        }
+                });
+            }
         });
         return deleteButton;
     }
