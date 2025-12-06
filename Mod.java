@@ -3,6 +3,10 @@ package com.lad.mmp;
 
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.TableView;
+
 import java.util.List;
 
 public class Mod {
@@ -15,15 +19,24 @@ public class Mod {
     int index;
     SimpleBooleanProperty property;
     boolean isDeleted = false;
-    public Mod(String n, String l, int i, ModPackManagerController.Site s, Status stat) {
+    public Mod(String n, String l, int i, ModPackManagerController.Site s, Status stat, TableView<Mod> mods, CheckBox modBox) {
         name = new SimpleStringProperty(n);
         link = l;
         index = i;
         site = s;
         status = stat;
         property = new SimpleBooleanProperty();
+        property.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
+        {
+            boolean allChecked = true;
+            for (var item : mods.getItems())
+            {
+                if (!item.property.get()) allChecked = false;
+            }
+            modBox.setSelected(allChecked);
+        });
     }
-    public Mod(String n, String l, int i, ModPackManagerController.Site s, String stat) {
+    public Mod(String n, String l, int i, ModPackManagerController.Site s, String stat, TableView<Mod> mods, CheckBox modBox) {
         name = new SimpleStringProperty(n);
         link = l;
         index = i;
@@ -33,6 +46,15 @@ public class Mod {
         if (stat.equals("Not installed")) status = Status.NOTINSTALLED;
         if (stat.equals("Downloading")) status = Status.DOWNLOADING;
         property = new SimpleBooleanProperty();
+        property.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
+        {
+            boolean allChecked = true;
+            for (var item : mods.getItems())
+            {
+                if (!item.property.get()) allChecked = false;
+            }
+            modBox.setSelected(allChecked);
+        });
     }
     protected SimpleStringProperty parseStatusObservable()
     {

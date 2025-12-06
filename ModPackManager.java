@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Application;
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -74,10 +75,10 @@ public class ModPackManager extends Application {
                         var version = parts[2].trim();
                         var game = parts[3].trim();
                         var modPack = new ModPack(name, FXCollections.observableArrayList(),
-                                modFilePath, version, game);
-                        String mods = parts[4].replace("Mods: ", "").trim();
-                        modPack.saveDataWriter = new FileWriter(mods, true);
-                        var modsFile = new File(mods);
+                                modFilePath, version, game, modpacks, modpackBox);
+                        String modsSaveFile = parts[4].replace("Mods: ", "").trim();
+                        modPack.saveDataWriter = new FileWriter(modsSaveFile, true);
+                        var modsFile = new File(modsSaveFile);
                         if (!modsFile.exists() || modsFile.length() == 0)
                         {
                             Platform.runLater(() -> modpacks.getItems().add(modPack));
@@ -94,7 +95,7 @@ public class ModPackManager extends Application {
                             var modSite = modParts[3].trim();
                             var site = ModPackManagerController.ParseFromString(modSite);
                             var modStatus = modParts[4].trim();
-                            var mod = new Mod(modName, modLink, Integer.parseInt(modIndex), site, modStatus);
+                            var mod = new Mod(modName, modLink, Integer.parseInt(modIndex), site, modStatus, mods, modBox);
                             String modsFilePath = "";
                             if (modParts.length > 5) modsFilePath = modParts[5];
                             mod.currentFile = new ModFolder(modsFilePath);
@@ -277,8 +278,7 @@ public class ModPackManager extends Application {
                         {
                             Mod mod = new Mod(nameField.getText(), linkField.getText(), selected.mods.size(),
                                     ModPackManagerController.ParseFromString(choice.getValue()),
-                                    Mod.Status.NOTINSTALLED);
-                            mod.property.addListener(this::modListener);
+                                    Mod.Status.NOTINSTALLED, mods, modBox);
                             var modsFileWriter = selected.saveDataWriter;
                             modsFileWriter.write("Mod: " + mod.name.get() + ", "
                                     + mod.link + ", " + mod.index + ", "
@@ -342,7 +342,7 @@ public class ModPackManager extends Application {
                     if (object == ButtonType.OK)
                     {
                         var modPack = new ModPack(name.getText(), FXCollections.observableArrayList(),
-                                gamePath.getText(), gameChoice.getValue(), versionChoice.getValue());
+                                gamePath.getText(), gameChoice.getValue(), versionChoice.getValue(), modpacks, modpackBox);
                         saveDataWrite.write("ModPack: " + modPack.name.get() + ", "
                                 + modPack.modFilePath.get() + ", " + modPack.version.get()
                                 + ", " + modPack.game.get() + ", Mods: " + saveData.getParentFile().getAbsolutePath() + "/" + modPack.name.get()
@@ -535,6 +535,9 @@ public class ModPackManager extends Application {
                     if (item.isSelected.get())
                     {
                         item.isDeleted = true;
+                        modpacks.getItems().remove(item);
+                        mods.setItems(null);
+                        mods.refresh();
                         try {
                             var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
                             if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
@@ -542,9 +545,6 @@ public class ModPackManager extends Application {
                         } catch (Exception ex) {
                             ModPackManagerController.showException(ex);
                         }
-                        modpacks.getItems().remove(item);
-                        mods.setItems(null);
-                        mods.refresh();
                     }
                 }
             }
@@ -563,31 +563,25 @@ public class ModPackManager extends Application {
                             if (item.isSelected.get())
                             {
                                 item.isDeleted = true;
-                                try {
+                                modpacks.getItems().remove(item);
+                                mods.setItems(null);
+                                mods.refresh();
+                                try
+                                {
                                     var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
                                     if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
+                                    for (var mod : item.mods)
+                                        mod.delete(item.mods);
                                     item.saveDataWriter.close();
                                 } catch (Exception ex) {
                                     ModPackManagerController.showException(ex);
                                 }
-                                modpacks.getItems().remove(item);
-                                mods.setItems(null);
-                                mods.refresh();
                             }
                         }
                 });
             }
         });
         return deleteButton;
-    }
-    protected void modListener(ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal)
-    {
-        boolean allChecked = true;
-        for (var item : mods.getItems())
-        {
-            if (!item.property.get()) allChecked = false;
-        }
-        modBox.setSelected(allChecked);
     }
     protected void getAPIKeyButton()
     {
