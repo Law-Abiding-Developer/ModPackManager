@@ -176,7 +176,13 @@ public class ModPackManager extends Application {
             });
             mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
             mods.setPlaceholder(new Label("Select a modpack to view mods" + System.lineSeparator() + "Unless the modpack has 0 mods"));
-            mods.setMaxWidth(670);
+            double width = 19.05;
+            for (var column : mods.getColumns())
+            {
+                width += column.getPrefWidth();
+            }
+            mods.setMaxWidth(width);
+            mods.setPrefWidth(width);
             mods.setMaxHeight(400);
 
             TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack");
@@ -202,7 +208,13 @@ public class ModPackManager extends Application {
                 });
                 return row;
             });
-            modpacks.setMaxWidth(592.5);
+            width = 19.05;
+            for (var column : modpacks.getColumns())
+            {
+                width += column.getPrefWidth();
+            }
+            modpacks.setMaxWidth(width);
+            modpacks.setPrefWidth(width);
             modpacks.setMaxHeight(400);
 
             TextArea text = new TextArea("""
@@ -210,12 +222,15 @@ public class ModPackManager extends Application {
                     """);
             text.setWrapText(true);
             text.setEditable(false);
-            text.setMaxWidth(400);
+            double textWidth = 330;
+            text.setMaxWidth(textWidth);
             text.setMaxHeight(1000000000);
             text.setPrefHeight(1000000000);
+            text.setStyle("-fx-font-size: 18px;");
             ScrollPane pane = new ScrollPane(text);
-            pane.setMaxWidth(417.5);
-            pane.setPrefWidth(417.5);
+            double additionalPaneWidth = 17.5;
+            pane.setMaxWidth(textWidth + additionalPaneWidth);
+            pane.setPrefWidth(textWidth + additionalPaneWidth);
             pane.setMaxHeight(400);
 
             HBox tableBox = new HBox(10, modpacks, mods, pane);
