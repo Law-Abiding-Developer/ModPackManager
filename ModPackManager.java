@@ -218,8 +218,9 @@ public class ModPackManager extends Application {
             modpacks.setMaxHeight(400);
 
             TextArea text = new TextArea("""
-                    Unknown Data
-                    """);
+                    Introduction
+                    
+                    """);//TODO: Add pages for text plane instructions
             text.setWrapText(true);
             text.setEditable(false);
             double textWidth = 330;
