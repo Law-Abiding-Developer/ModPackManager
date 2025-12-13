@@ -1,10 +1,6 @@
 package com.lad.mmp;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
 
@@ -48,7 +44,6 @@ public class ModPackManagerController {
             message += "at " + i + System.lineSeparator();
         }
         showError("Error", e.getClass() + " " + e.getMessage() + System.lineSeparator() + message);
-
     }
     protected static TableCell<Mod, Boolean> checkboxFactory(TableColumn<Mod, Boolean> c)
     {
