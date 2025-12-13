@@ -50,4 +50,8 @@ public class ModFolder extends File {
         }
         return null;
     }
+    public boolean ensureExists() throws Exception
+    {
+        return exists() || getParentFile().mkdirs() || createNewFile();
+    }
 }
