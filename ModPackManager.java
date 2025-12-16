@@ -359,10 +359,10 @@ public class ModPackManager extends Application {
                                 gamePath.getText(), gameChoice.getValue(), versionChoice.getValue(), modpacks, modpackBox);
                         saveDataWrite.write("ModPack: " + modPack.name.get() + ", "
                                 + modPack.modFilePath.get() + ", " + modPack.version.get()
-                                + ", " + modPack.game.get() + ", Mods: " + saveData.getParentFile().getAbsolutePath() + "/" + modPack.name.get()
+                                + ", " + modPack.game.get() + ", Mods: " + saveData.getParentFile().getAbsolutePath() + File.separator + modPack.name.get()
                                 + "SaveData.txt" + System.lineSeparator());
                         saveDataWrite.flush();
-                        modPack.saveDataWriter = new FileWriter(saveData.getParentFile().getAbsolutePath() + "/" + modPack.name.get() + "SaveData.ext", true);
+                        modPack.saveDataWriter = new FileWriter(saveData.getParentFile().getAbsolutePath() + File.separator + modPack.name.get() + "SaveData.ext", true);
                         return modPack;
                     }
                     return null;
@@ -576,7 +576,7 @@ public class ModPackManager extends Application {
                         mods.setItems(null);
                         mods.refresh();
                         try {
-                            var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
+                            var toDelete = new File(saveData.getParentFile().getAbsolutePath() + File.separator + item.name.get() + "SaveData.txt");
                             if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
                             item.saveDataWriter.close();
                         } catch (Exception ex) {
@@ -605,7 +605,7 @@ public class ModPackManager extends Application {
                                 mods.refresh();
                                 try
                                 {
-                                    var toDelete = new File(saveData.getParentFile().getAbsolutePath() + "/" + item.name.get() + "SaveData.txt");
+                                    var toDelete = new File(saveData.getParentFile().getAbsolutePath() + File.separator + item.name.get() + "SaveData.txt");
                                     if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
                                     for (var mod : item.mods)
                                         mod.delete(item.mods);
