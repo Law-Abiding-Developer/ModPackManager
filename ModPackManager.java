@@ -114,9 +114,7 @@ public class ModPackManager extends Application {
                 }
                 catch (Throwable ex)
                 {
-                    Platform.runLater(() ->
-                    {
-                    ModPackManagerController.showException(ex);});
+                    Platform.runLater(() -> ModPackManagerController.showException(ex));
                 }
             });
             var thread = new Thread(task);
@@ -459,6 +457,7 @@ public class ModPackManager extends Application {
                         }
                         mod.status = Mod.Status.NOTINSTALLED;
                         updateProgress(pogress++, maxProgress);
+                            Platform.runLater(() -> ModPackManagerController.showException(ex, "Mod Download Failed! Failed to download files for mod " + mod.name.get().trim() + "! Skipping..." + System.lineSeparator() + "Exception:"));
                     }
                     return null;
                 }
