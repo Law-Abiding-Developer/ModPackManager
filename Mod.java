@@ -10,12 +10,12 @@ import javafx.scene.control.TableView;
 import java.util.List;
 
 public class Mod {
-    SimpleStringProperty name;
-    String link;
-    SimpleStringProperty version;
-    ModFolder currentFile;
-    Status status;
-    ModPackManagerController.Site site;
+    public SimpleStringProperty name;
+    public String link;
+    public SimpleStringProperty version;
+    public ModFolder currentFile;
+    public Status status;
+    public ModPackManagerController.Site site;
     /**
      * The indexes of each of the file written locations of each field. Note: Each field should be the start of each index.
      */
@@ -57,15 +57,29 @@ public class Mod {
             modBox.setSelected(allChecked);
         });
     }
-    protected SimpleStringProperty parseStatusObservable()
+    public SimpleStringProperty parseStatusObservable()
     {
-        SimpleStringProperty string;
-        if (status == Mod.Status.UPDATEAVAILABLE) string = new SimpleStringProperty("Update Available!");
-        else if (status == Mod.Status.INSTALLED) string = new SimpleStringProperty("Installed");
-        else if (status == Mod.Status.NOTINSTALLED) string = new SimpleStringProperty("Not installed");
-        else if (status == Status.DOWNLOADING) string = new SimpleStringProperty("Downloading");
-        else string = new SimpleStringProperty("null");
-        return string;
+        return new SimpleStringProperty()
+        {
+            @Override
+            public String get()
+            {
+                if (status == Status.UPDATEAVAILABLE) return "Update Available!";
+                else if (status == Status.INSTALLED) return "Installed";
+                else if (status == Status.NOTINSTALLED) return "Not installed";
+                else if (status == Status.DOWNLOADING) return "Downloading";
+                return "";
+            }
+            @Override
+            public void set(String set)
+            {
+                if (set.equals("Update Available!")) status = Status.UPDATEAVAILABLE;
+                else if (set.equals("Installed")) status = Status.INSTALLED;
+                else if (set.equals("Not installed")) status = Status.NOTINSTALLED;
+                else if (set.equals("Downloading")) status = Status.DOWNLOADING;
+                else status = Status.NULL;
+            }
+        };
     }
 
     /**
@@ -117,6 +131,6 @@ public class Mod {
         INSTALLED,
         NOTINSTALLED,
         UPDATEAVAILABLE,
-        DOWNLOADING
+        DOWNLOADING,
     }
 }
