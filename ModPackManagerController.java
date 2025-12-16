@@ -29,10 +29,14 @@ public class ModPackManagerController {
     }
 
     public static void showError(String title, String message) {
+        TextArea text = new TextArea(message);
+        text.setEditable(false);
+        text.setWrapText(true);
+
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText("An error occurred");
-        alert.setContentText(message);
+        alert.getDialogPane().setContent(text);
         alert.showAndWait();
     }
 
