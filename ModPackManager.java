@@ -402,62 +402,73 @@ public class ModPackManager extends Application {
             ProgressBar bar = new ProgressBar(0);
             progress.getDialogPane().setContent(bar);
             progress.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
-            Task<File> task = new Task<>() {
+            Task<Void> task = new Task<>() {
                 @Override
-                protected File call() throws Exception {
+                protected Void call() throws Exception {
                     var modPack = modpacks.getSelectionModel().getSelectedItem();
-                    int maxProgress = (count * 13) + 7;
+                    int maxProgress = (count * 15) + 7;
                     int pogress = 0;
                     updateProgress(pogress, maxProgress);
                     for (var mod : mods.getItems())
                     {
-                        //TODO: code backend for downloading site
-                        if (!mod.property.get()) continue;
-                        if (modPack.isDeleted) cancel(true);
-                        updateProgress(pogress++, maxProgress);
-                        mod.status = Mod.Status.DOWNLOADING;
-                        if (modPack.isDeleted) cancel(true);
-                        updateProgress(pogress++, maxProgress);
-                        if (mod.site == ModPackManagerController.Site.REIKA && modPack.version.get().equals("Legacy"))
-                        {
+                        try {//TODO: code backend for downloading site
+                            if (!mod.property.get()) continue;
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
-                            HttpClient client = HttpClient.newHttpClient();
+                            mod.status = Mod.Status.DOWNLOADING;
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
-                            HttpRequest request = HttpRequest.newBuilder().uri(URI.create(mod.link)).GET().build();
-                            if (modPack.isDeleted) cancel(true);
+                            if (mod.site == ModPackManagerController.Site.REIKA) {
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(mod.link)).GET().build();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                String html = response.body();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                int startIndex = html.indexOf("<h3>Downloads</h3>") + 44;
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                int endIndex = html.indexOf("Via GitHub Releases") - 8;
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                String fileLink = html.substring(startIndex, endIndex);
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                request = HttpRequest.newBuilder().uri(URI.create(fileLink)).build();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+                                String filePath = modPack.modFilePath.get() + File.separator + ".modpackmanager" + File.separator + mod.name.get().trim() + ".zip";
+                                mod.currentFile = new ModFolder(filePath);
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++ + 7, maxProgress);
+                                mod.currentFile.ensureExists();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++ + 7, maxProgress);
+                                HttpResponse<Path> downloadedFile = client.send(request,
+                                        HttpResponse.BodyHandlers.ofFile(mod.currentFile.toPath()));
+                                modPack.saveDataWriter.write(filePath);
+                                modPack.saveDataWriter.flush();
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++ + 7, maxProgress);
+                            }
+                            if (mod.site == ModPackManagerController.Site.NEXUSMODS) {
+                                //TODO: Code Nexus Mods API Access back end
+                            }
+                            mod.status = Mod.Status.NOTINSTALLED;
                             updateProgress(pogress++, maxProgress);
-                            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            String html = response.body();
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            int startIndex = html.indexOf("<h3>Downloads</h3>") + 44;
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            int endIndex = html.indexOf("Via GitHub Releases") - 8;
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            String fileLink = html.substring(startIndex,endIndex);
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            request = HttpRequest.newBuilder().uri(URI.create(fileLink)).build();
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
-                            HttpResponse<Path> downloadedFile = client.send(request,
-                                    HttpResponse.BodyHandlers.ofFile(Path.of(URI.create(modPack.modFilePath.get()))));
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++ + 7,maxProgress);
                         }
-                        if (mod.site == ModPackManagerController.Site.NEXUSMODS)
+                        catch (Exception ex)
                         {
-                            //TODO: Code Nexus Mods API Access back end
-                        }
-                        mod.status = Mod.Status.NOTINSTALLED;
-                        updateProgress(pogress++, maxProgress);
                             Platform.runLater(() -> ModPackManagerController.showException(ex, "Mod Download Failed! Failed to download files for mod " + mod.name.get().trim() + "! Skipping..." + System.lineSeparator() + "Exception:"));
+                        }
                     }
                     return null;
                 }
@@ -476,15 +487,26 @@ public class ModPackManager extends Application {
                 progress.close();
             });
             task.setOnFailed(event -> {
-                progress.close();
                 String message = "";
                 for (var i : event.getSource().getException().getStackTrace())
                 {
                     message += "at " + i + System.lineSeparator();
                 }
                 ModPackManagerController.showError("Error", e.getClass() + " " + System.lineSeparator() + message);
+                progress.close();
             });
-            task.setOnCancelled(f -> progress.close());
+            task.setOnCancelled(f ->
+            {
+                if (f.getSource().getException() != null)
+                {
+                    ModPackManagerController.showException(f.getSource().getException());
+                }
+                else
+                {
+                    ModPackManagerController.showError("Download Failed!", "Failed to complete download!");
+                }
+                progress.close();
+            });
             progress.initModality(Modality.NONE);
             progress.show();
             Thread thread = new Thread(task);
