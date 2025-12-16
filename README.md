@@ -1,5 +1,5 @@
 # Mod Pack Manager (MMP)
-Welcome to Mod Pack Manager! This program downloads and installs mods for supported game and game versions! Please note that this program requires access to the internet as well as your file system to function as intended. A launch script will be made available for each version released of MMP.
+Welcome to Mod Pack Manager! This program downloads and installs mods for supported game and game versions! Please note that this program requires access to the internet as well as your file system to function as intended.
 ## Supported Games/Game Versions/Sites/OSes
 MMP has to be coded manually to be able to access sites on the internet or the correct files and folders.
 ### Supported Sites
@@ -51,9 +51,13 @@ Once a release is officially out, you'll be able to download a zip file on the r
    - Follow the instructions
    - Done!
  - Indirectly Supported OSes
-   - Each OS has direct support through an installer. The rest have indirect support because of how Java works. You can run MMP because of the `java` command in all terminals. This does require a .jar file, with the extension `-jar` tacked onto the command, which I have provided in the `Releases` section (See header How To Download). Follow these instructions if your OS/architecture was not listed above
-     - Download the `.jar` file.
+   - Each OS has direct support through an installer. The rest have indirect support because of how Java works. You can still have an app, but it requires a Java installation/Java Runtime Environment. I have only provided the `.jar` file (under a folder) and the icon in the `Releases` section (See header How To Download). Follow these instructions if your OS/architecture was not listed above
+     - Download the `.zip` file.
+     - Extract (unzip) it.
      - Ensure you have a version of Java (go look it up for your specific distribution and architecture (x86_64 or ARM))
-     - In terminal, run `java -jar path/to/downloaded/mmp.jar`
-     - Have at it!
+     - In your version of terminal, move the running directory to where the icon and folder containing the `.jar` file is.
+       - You can do that with this command: `cd absolute/path/to/app/to/package`
+     - Run this command:
+       - ```jpackage --type app-image --input ModPackManager --main-jar mmp.jar --main-class com.lad.mmp.Launcher --name ModPackManager --icon Untitled1_20251208104439.icns```
+     - Ensure the app is not in the Downloads folder.
    - **32-bit systems MAY NOT be able to run this. IF YOU ATTEMPT TO RUN THIS APP ON A 32-BIT SYSTEM, EXPECT MANY CRASH RELATED BUGS**
