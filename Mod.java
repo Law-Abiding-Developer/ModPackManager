@@ -16,13 +16,15 @@ public class Mod {
     ModFolder currentFile;
     Status status;
     ModPackManagerController.Site site;
-    int index;
+    /**
+     * The indexes of each of the file written locations of each field. Note: Each field should be the start of each index.
+     */
+    public int[] index;
     SimpleBooleanProperty property;
     boolean isDeleted = false;
-    public Mod(String n, String l, int i, ModPackManagerController.Site s, Status stat, TableView<Mod> mods, CheckBox modBox) {
+    public Mod(String n, String l, ModPackManagerController.Site s, Status stat, TableView<Mod> mods, CheckBox modBox) {
         name = new SimpleStringProperty(n);
         link = l;
-        index = i;
         site = s;
         status = stat;
         property = new SimpleBooleanProperty();
@@ -36,10 +38,9 @@ public class Mod {
             modBox.setSelected(allChecked);
         });
     }
-    public Mod(String n, String l, int i, ModPackManagerController.Site s, String stat, TableView<Mod> mods, CheckBox modBox) {
+    public Mod(String n, String l, ModPackManagerController.Site s, String stat, TableView<Mod> mods, CheckBox modBox) {
         name = new SimpleStringProperty(n);
         link = l;
-        index = i;
         site = s;
         if (stat.equals("Update Available!")) status = Status.UPDATEAVAILABLE;
         if (stat.equals("Installed")) status = Status.INSTALLED;
@@ -102,7 +103,7 @@ public class Mod {
                 property = null;
             }
             link = null;
-            index = -1;
+            index = null;
         }
         catch (Exception e)
         {
