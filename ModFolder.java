@@ -50,8 +50,11 @@ public class ModFolder extends File {
         }
         return null;
     }
-    public boolean ensureExists() throws Exception
+    public void ensureExists() throws Exception
     {
-        return exists() || getParentFile().mkdirs() || createNewFile();
+            if (!exists() && (!createNewFile() || (!getParentFile().exists() && !getParentFile().mkdirs())))
+            {
+                throw new RuntimeException("Failed to create parent directories for mod folder");
+            }
     }
 }
