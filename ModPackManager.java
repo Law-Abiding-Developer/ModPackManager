@@ -49,6 +49,14 @@ public class ModPackManager extends Application {
     @Override
     public void start(Stage stage) {
         try {
+            var jsonManager = new JSONManager();
+            jsonManager.start(savePath, this);
+            PrintStream log = new PrintStream(new FileOutputStream(
+                    System.getProperty("user.home")
+                            + File.separator + ".modpackmanager" + File.separator
+                            + "data" + File.separator + "MMPLog.log", false));
+            System.setOut(log);
+            System.setErr(log);
             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(
                     e -> {
                         shiftKeyPressed = e.isShiftDown();
