@@ -1,13 +1,12 @@
 package com.lad.mmp;
 
+import com.lad.mmp.JSONManager.JSONManager;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Application;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
@@ -26,30 +25,35 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.awt.*;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 public class ModPackManager extends Application {
-    TableView<ModPack> modpacks = new TableView<>();
+    public TableView<ModPack> modpacks = new TableView<>();
     ObservableList<ModPack> list = FXCollections.observableArrayList();
 
-    TableView<Mod> mods = new TableView<>();
-    String baseSavePath = System.getProperty("user.home");
-    File saveData = new File(baseSavePath + File.separator + ".modpackmanager" + File.separator + "data" + File.separator + "MMPSaveData.txt");
-    FileWriter saveDataWrite;
-    CheckBox modBox = new CheckBox();
-    CheckBox modpackBox = new CheckBox();
+    public TableView<Mod> mods = new TableView<>();
+    String savePath = System.getProperty("user.home") + File.separator + ".modpackmanager" + File.separator + "data" + File.separator + "MMPSaveData.json";
+    public CheckBox modBox = new CheckBox();
+    public CheckBox modpackBox = new CheckBox();
     boolean shiftKeyPressed = false;
-
+    final JSONManager jsonManager = new JSONManager();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     @Override
     public void start(Stage stage) {
         try {
-            var jsonManager = new JSONManager();
             jsonManager.start(savePath, this);
             PrintStream log = new PrintStream(new FileOutputStream(
                     System.getProperty("user.home")
@@ -57,80 +61,17 @@ public class ModPackManager extends Application {
                             + "data" + File.separator + "MMPLog.log", false));
             System.setOut(log);
             System.setErr(log);
+
             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(
                     e -> {
                         shiftKeyPressed = e.isShiftDown();
                         return false;
                     });
-            var parentDir = saveData.getParentFile();
-            if (parentDir != null && !parentDir.exists())
-                if (!parentDir.mkdirs())
-                    throw new RuntimeException("Could not create the parent file for save data");
-            Task<Void> task = new Task<>() {//TODO: Add way to share mods.
-                @Override
-                protected Void call() throws Exception {
-                    saveDataWrite = new FileWriter(saveData, true);
-                    if (!saveData.exists() || saveData.length() == 0) return null;
-                    var string = Files.readString(saveData.toPath());
-                    var subStrings = string.split("ModPack: ");
-                    for (var item : subStrings)
-                    {
-                        if (item.isBlank()) continue;
-                        var parts = item.split(", ");
-                        if (parts.length < 5) continue;
-                        var name = parts[0].trim();
-                        var modFilePath = parts[1].trim();
-                        var version = parts[2].trim();
-                        var game = parts[3].trim();
-                        var modPack = new ModPack(name, FXCollections.observableArrayList(),
-                                modFilePath, version, game, modpacks, modpackBox);
-                        String modsSaveFile = parts[4].replace("Mods: ", "").trim();
-                        modPack.saveDataWriter = new FileWriter(modsSaveFile, true);
-                        var modsFile = new File(modsSaveFile);
-                        if (!modsFile.exists() || modsFile.length() == 0)
-                        {
-                            Platform.runLater(() -> modpacks.getItems().add(modPack));
-                            continue;
-                        }
-                        var modSubStrings = Files.readString(modsFile.toPath());
-                        for (var modItem : modSubStrings.split("Mod: ")) {
-                            if (modItem.isBlank()) continue;
-                            var modParts = modItem.split(", ");
-                            if (modParts.length < 5) continue;
-                            var modName = modParts[0].trim();
-                            var modLink = modParts[1].trim();
-                            var modIndex = modParts[2].trim();
-                            var modSite = modParts[3].trim();
-                            var site = ModPackManagerController.ParseFromString(modSite);
-                            var modStatus = modParts[4].trim();
-                            var mod = new Mod(modName, modLink, Integer.parseInt(modIndex), site, modStatus, mods, modBox);
-                            String modsFilePath = "";
-                            if (modParts.length > 5) modsFilePath = modParts[5];
-                            mod.currentFile = new ModFolder(modsFilePath);
-                            modPack.mods.add(mod);
-                        }
-                        Platform.runLater(() -> modpacks.getItems().add(modPack));
-                    }
-                    return null;
-                }
-            };
-            task.setOnFailed(e ->
-            {
-                try
-                {
-                    throw e.getSource().getException();
-                }
-                catch (Throwable ex)
-                {
-                    Platform.runLater(() -> ModPackManagerController.showException(ex));
-                }
-            });
-            var thread = new Thread(task);
-            thread.start();
-
+            //TODO: Add way to share mods.
             TableColumn<Mod, String> modColumn = new TableColumn<>("Mod Name");
             modColumn.setCellValueFactory(callBack ->
                     callBack.getValue().name);
+            modColumn.setPrefWidth(125);
             TableColumn<Mod, String> modVersion = new TableColumn<>("Current version");
             modVersion.setCellValueFactory(callBack ->
                     callBack.getValue().version);
@@ -140,7 +81,7 @@ public class ModPackManager extends Application {
             modVersion.setPrefWidth(100);
             TableColumn<Mod, String> modSite = new TableColumn<>();
             modSite.setCellValueFactory(callBack ->
-                    new SimpleStringProperty(ModPackManagerController.convertToString(callBack.getValue().site)));
+                    callBack.getValue().site);
             Label header = new Label("Site");
             header.setTooltip(new Tooltip("Click to copy link"));
             modSite.setGraphic(header);
@@ -175,24 +116,22 @@ public class ModPackManager extends Application {
             });
             TableColumn<Mod, String> modStatus = new TableColumn<>("Status");
             modStatus.setCellValueFactory(callBack ->
-            {
-                SimpleStringProperty string;
-                string = callBack.getValue().parseStatusObservable();
-                return string;
-            });
+                    callBack.getValue().observableStatus);
             mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
             mods.setPlaceholder(new Label("Select a modpack to view mods" + System.lineSeparator() + "Unless the modpack has 0 mods"));
-            double width = 19.05;
+            final double SCROLLBAR_WIDTH = 17;
+            double width = SCROLLBAR_WIDTH;
             for (var column : mods.getColumns())
             {
                 width += column.getPrefWidth();
             }
-            mods.setMaxWidth(width);
+            mods.setMaxWidth(width+200);
             mods.setPrefWidth(width);
             mods.setMaxHeight(400);
 
-            TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack");
+            TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack Name");
             modPackColumn.setCellValueFactory(ModPackManagerController::cellFactory);
+            modPackColumn.setPrefWidth(125);
             TableColumn<ModPack, Integer> modPackValueColumn = new TableColumn<>("Size");
             modPackValueColumn.setCellValueFactory(callBack ->
                     callBack.getValue().size.asObject());
@@ -214,17 +153,22 @@ public class ModPackManager extends Application {
                 });
                 return row;
             });
-            width = 19.05;
+            width = SCROLLBAR_WIDTH;
             for (var column : modpacks.getColumns())
             {
                 width += column.getPrefWidth();
             }
-            modpacks.setMaxWidth(width);
+            modpacks.setMaxWidth(width+200);
             modpacks.setPrefWidth(width);
             modpacks.setMaxHeight(400);
 
             TextArea text = new TextArea("""
+                    INSTRUCTIONS (REFERENCE FOR HELP)
+                    
                     Introduction
+                    This mod pack manager lets you choose which mods are installed, not installed, and when to update each mod. Please note that some of these tasks take time, and may cost some performance on this application and/or your computer. THIS WAS NOT ENCOURAGED OR MADE BY ANYONE BUT MYSELF, "LawAbidingDeveloper."
+                    
+                    Each Button's purpose
                     
                     """);//TODO: Add pages for text plane instructions
             text.setWrapText(true);
@@ -241,7 +185,7 @@ public class ModPackManager extends Application {
             pane.setMaxHeight(400);
 
             HBox tableBox = new HBox(10, modpacks, mods, pane);
-            HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getDownloadButton(),getModDeleteButton());
+            HBox buttonBox = new HBox(10.00, getModPackButton(), getDeleteButton(), getModButton(), getModDeleteButton(), getDownloadButton(), getModInstallButton());
             Label topText = new Label("""
                     Welcome to Mod Pack Manager v0.5.0!
                     This is a mod manager where nothing happens without your explicit permission.
@@ -249,7 +193,7 @@ public class ModPackManager extends Application {
             HBox textBox = new HBox(10, topText);
             textBox.setStyle("-fx-font-size: 26px;");
             VBox root = new VBox(10, textBox, tableBox, buttonBox);
-            Scene scene = new Scene(root, 1110, 550);
+            Scene scene = new Scene(root, 1200, 550);
             stage.setTitle("Mod Pack Manager");
             stage.setScene(scene);
             var close = stage.getOnCloseRequest();
@@ -263,7 +207,12 @@ public class ModPackManager extends Application {
             ModPackManagerController.showError("Error", e.getClass() + " " + System.lineSeparator() + message);
         }
     }
-
+    @Override
+    public void stop() throws Exception {
+        jsonManager.stop();
+        scheduler.shutdown();
+        super.stop();
+    }
     private Button getModButton()
     {
         Button newModButton = new Button("Add Mod to Selected Mod Pack");
@@ -298,20 +247,9 @@ public class ModPackManager extends Application {
                     {
                         if (button == ButtonType.OK)
                         {
-                            Mod mod = new Mod(nameField.getText(), linkField.getText(), selected.mods.size(),
-                                    ModPackManagerController.ParseFromString(choice.getValue()),
-                                    Mod.Status.NOTINSTALLED, mods, modBox);
-                            var modsFileWriter = selected.saveDataWriter;
-                            modsFileWriter.write("Mod: " + mod.name.get() + ", "
-                                    + mod.link + ", " + mod.index + ", "
-                                    + ModPackManagerController.convertToString(mod.site) + ", "
-                                    + mod.parseStatusObservable().get() + ", ");
-                            if (mod.currentFile != null)
-                                modsFileWriter.write(mod.currentFile.getAbsolutePath()
-                                        + System.lineSeparator());
-                            else modsFileWriter.write(System.lineSeparator());
-                            modsFileWriter.flush();
-                            return mod;
+                            return new Mod(nameField.getText(), linkField.getText(),
+                                    choice.getValue(),
+                                    SimpleStatusProperty.Status.NOTINSTALLED, this);
                         }
                     }
                     catch (Exception f)
@@ -364,13 +302,7 @@ public class ModPackManager extends Application {
                     if (object == ButtonType.OK)
                     {
                         var modPack = new ModPack(name.getText(), FXCollections.observableArrayList(),
-                                gamePath.getText(), gameChoice.getValue(), versionChoice.getValue(), modpacks, modpackBox);
-                        saveDataWrite.write("ModPack: " + modPack.name.get() + ", "
-                                + modPack.modFilePath.get() + ", " + modPack.version.get()
-                                + ", " + modPack.game.get() + ", Mods: " + saveData.getParentFile().getAbsolutePath() + File.separator + modPack.name.get()
-                                + "SaveData.txt" + System.lineSeparator());
-                        saveDataWrite.flush();
-                        modPack.saveDataWriter = new FileWriter(saveData.getParentFile().getAbsolutePath() + File.separator + modPack.name.get() + "SaveData.ext", true);
+                                gamePath.getText(), gameChoice.getValue(), versionChoice.getValue(), this);
                         return modPack;
                     }
                     return null;
@@ -419,14 +351,14 @@ public class ModPackManager extends Application {
                     updateProgress(pogress, maxProgress);
                     for (var mod : mods.getItems())
                     {
-                        try {//TODO: code backend for downloading site
+                        try {//TODO: code nexus backend for downloading site
                             if (!mod.property.get()) continue;
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
-                            mod.status = Mod.Status.DOWNLOADING;
+                            mod.observableStatus.set(SimpleStatusProperty.Status.DOWNLOADING);
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
-                            if (mod.site == ModPackManagerController.Site.REIKA) {
+                            if (mod.site.getSite() == SimpleSiteProperty.Site.REIKA) {
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++, maxProgress);
                                 HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
@@ -462,15 +394,15 @@ public class ModPackManager extends Application {
                                 updateProgress(pogress++ + 7, maxProgress);
                                 HttpResponse<Path> downloadedFile = client.send(request,
                                         HttpResponse.BodyHandlers.ofFile(mod.currentFile.toPath()));
-                                modPack.saveDataWriter.write(filePath);
-                                modPack.saveDataWriter.flush();
+
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++ + 7, maxProgress);
                             }
-                            if (mod.site == ModPackManagerController.Site.NEXUSMODS) {
+                            if (mod.site.getSite() == SimpleSiteProperty.Site.NEXUSMODS)
+                            {
                                 //TODO: Code Nexus Mods API Access back end
                             }
-                            mod.status = Mod.Status.NOTINSTALLED;
+                            mod.observableStatus.set(SimpleStatusProperty.Status.NOTINSTALLED);
                             updateProgress(pogress++, maxProgress);
                         }
                         catch (Exception ex)
@@ -511,14 +443,13 @@ public class ModPackManager extends Application {
                 }
                 else
                 {
-                    ModPackManagerController.showError("Download Failed!", "Failed to complete download!");
+                    ModPackManagerController.showError("Download Failed!", "Download Canceled!");
                 }
                 progress.close();
             });
             progress.initModality(Modality.NONE);
             progress.show();
-            Thread thread = new Thread(task);
-            thread.start();
+            scheduleAsyncTask(task);
         });
         return downloadButton;
     }
@@ -534,6 +465,7 @@ public class ModPackManager extends Application {
             boolean set = modBox.isSelected();
             for (var item : mods.getItems())
             {
+                if (item.isDeleted) continue;
                 item.property.set(set);
             }
         });
@@ -570,28 +502,12 @@ public class ModPackManager extends Application {
     }
     private Button getDeleteButton()
     {
-        Button deleteButton = new Button("Delete Selected Mod Pack");
+        Button deleteButton = new Button("Delete Selected Mod Pack(s)");
         deleteButton.setOnAction(e ->
         {
             if (shiftKeyPressed)
             {
-                for (var item : modpacks.getItems())
-                {
-                    if (item.isSelected.get())
-                    {
-                        item.isDeleted = true;
-                        modpacks.getItems().remove(item);
-                        mods.setItems(null);
-                        mods.refresh();
-                        try {
-                            var toDelete = new File(saveData.getParentFile().getAbsolutePath() + File.separator + item.name.get() + "SaveData.txt");
-                            if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
-                            item.saveDataWriter.close();
-                        } catch (Exception ex) {
-                            ModPackManagerController.showException(ex);
-                        }
-                    }
-                }
+                scheduleAsyncTask(this::modPackDeleteHelper);
             }
             else
             {
@@ -603,30 +519,32 @@ public class ModPackManager extends Application {
                 type.ifPresent(response ->
                 {
                     if (response == ButtonType.OK)
-                        for (var item : modpacks.getItems())
-                        {
-                            if (item.isSelected.get())
-                            {
-                                item.isDeleted = true;
-                                modpacks.getItems().remove(item);
-                                mods.setItems(null);
-                                mods.refresh();
-                                try
-                                {
-                                    var toDelete = new File(saveData.getParentFile().getAbsolutePath() + File.separator + item.name.get() + "SaveData.txt");
-                                    if (!toDelete.delete()) throw new RuntimeException("Failed to delete save data file for modpack");
-                                    for (var mod : item.mods)
-                                        mod.delete(item.mods);
-                                    item.saveDataWriter.close();
-                                } catch (Exception ex) {
-                                    ModPackManagerController.showException(ex);
-                                }
-                            }
-                        }
+                        scheduleAsyncTask(this::modPackDeleteHelper);
                 });
             }
         });
         return deleteButton;
+    }
+    public void modPackDeleteHelper()
+    {
+        for (var item : new ArrayList<>(modpacks.getItems()))
+        {
+            if (item.isSelected.get())
+            {
+                item.isDeleted = true;
+                try
+                {
+                    for (var mod : new ArrayList<>(item.mods))
+                        mod.delete(item.mods);
+                } catch (Exception ex) {
+                    Platform.runLater(() ->ModPackManagerController.showException(ex));
+                }
+                Platform.runLater(() ->modpacks.getItems().remove(item));
+                if (modpacks.getItems().isEmpty()) mods.setItems(null);
+                else modpacks.getSelectionModel().select(0);
+                mods.refresh();
+            }
+        }
     }
     protected void getAPIKeyButton()
     {
@@ -637,10 +555,9 @@ public class ModPackManager extends Application {
         Button modDeleteButton = new Button("Delete Selected Mod(s)");
         modDeleteButton.setOnAction(e ->
         {
-            if (shiftKeyPressed)
-                for (var modItem : mods.getItems())
-                    if (modItem.property.get())
-                        modItem.delete(mods.getItems());
+            if (shiftKeyPressed) {
+                scheduleAsyncTask(this::modDeleteHelper);
+            }
             else
             {
                 Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -649,18 +566,133 @@ public class ModPackManager extends Application {
                 alert.setContentText("Are you sure you want to delete this(these) Mod(s)? THIS WILL DELETE ANY AND ALL DATA THE MOD HAS (except mod save data or options)");
                 var item = alert.showAndWait();
                 item.ifPresent(response ->{
-                    if (response == ButtonType.OK)
-                        for (var mod : mods.getItems())
-                            if (mod.property.get())
-                                mod.delete(mods.getItems());
+                    if (response == ButtonType.OK) {
+                        scheduleAsyncTask(this::modDeleteHelper);
+                    }
             });
 
             }
         });
         return modDeleteButton;
     }
+    public void modDeleteHelper()
+    {
+        for (var mod : new LinkedList<>(mods.getItems()))
+        {
+            if (mod.property.get())
+            {
+                mod.delete(modpacks.getSelectionModel().getSelectedItem().mods);
+            }
+        }
+
+    }
     protected void getModImportButton()
     {
         //TODO: Add file import button
+    }
+    protected Button getModInstallButton()
+    {
+        //TODO: Add install button
+        Button button = new Button("Install Selected Mod(s)");
+        button.setOnAction(event ->
+        {
+            Dialog<Void> progress = new Dialog<>();
+            count = 0;
+            for (var item : mods.getItems())
+            {
+                if (!item.property.get()) continue;
+                count++;
+            }
+            progress.setTitle("Downloading " + count + " mods...");
+            progress.setHeaderText("Downloading " + count + " mods. You can keep"
+                    + System.lineSeparator() + "working while this is going.");
+            ProgressBar bar = new ProgressBar(0);
+            progress.getDialogPane().setContent(bar);
+            progress.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    var modPack = modpacks.getSelectionModel().getSelectedItem();
+                    int maxProgress = (count * 15) + 7;
+                    int pogress = 0;
+                    updateProgress(pogress, maxProgress);
+                    for (var mod : mods.getItems())
+                    {
+                        try
+                        {
+                            if (mod.property.get())
+                            {
+
+                                byte[] buffer = new byte[8096];
+                                ZipInputStream zis = new ZipInputStream(new FileInputStream(mod.currentFile));
+                                ZipEntry entry = zis.getNextEntry();
+                                while (entry != null)
+                                {
+
+                                }
+                                zis.closeEntry();
+                                zis.close();
+                                if (mod.site.getSite() == SimpleSiteProperty.Site.REIKA)
+                                {
+                                    var version = Files.readString(Path.of(mod.currentFile.getAbsolutePath() + File.separator + "current-version.txt"));
+                                    mod.version = new SimpleStringProperty(version.substring(0, 5));
+                                }
+                                else if (mod.site.getSite() == SimpleSiteProperty.Site.NEXUSMODS)
+                                {
+
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Platform.runLater(() -> ModPackManagerController.showException(ex, "Mod Installation Failed! Failed to download files for mod " + mod.name.get().trim() + "! Please attempt a manual install! Skipping..." + System.lineSeparator() + "Exception:"));
+                        }
+                    }
+                    return null;
+                }
+            };
+            bar.progressProperty().bind(task.progressProperty());
+            progress.setResultConverter(f->
+            {
+                if (f == ButtonType.CANCEL)
+                {
+                    task.cancel();
+                }
+                return null;
+            });
+            task.setOnSucceeded(g ->
+            {
+                progress.close();
+            });
+            task.setOnFailed(e -> {
+                String message = "";
+                for (var i : e.getSource().getException().getStackTrace())
+                {
+                    message += "at " + i + System.lineSeparator();
+                }
+                ModPackManagerController.showError("Error", e.getClass() + " " + System.lineSeparator() + message);
+                progress.close();
+            });
+            task.setOnCancelled(f ->
+            {
+                if (f.getSource().getException() != null)
+                {
+                    ModPackManagerController.showException(f.getSource().getException());
+                }
+                else
+                {
+                    ModPackManagerController.showError("Download Failed!", "Failed to complete download!");
+                }
+                progress.close();
+            });
+            progress.initModality(Modality.NONE);
+            progress.show();
+            scheduleAsyncTask(task);
+        });
+        return button;
+    }
+    public void scheduleAsyncTask(Runnable task)
+    {
+        scheduler.submit(task);
     }
 }

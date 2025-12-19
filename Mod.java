@@ -1,85 +1,94 @@
 package com.lad.mmp;
 
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableView;
 
 import java.util.List;
 
 public class Mod {
     public SimpleStringProperty name;
-    public String link;
+    public final String link;
     public SimpleStringProperty version;
     public ModFolder currentFile;
-    public Status status;
-    public ModPackManagerController.Site site;
-    /**
-     * The indexes of each of the file written locations of each field. Note: Each field should be the start of each index.
-     */
-    public int[] index;
-    SimpleBooleanProperty property;
+    public SimpleStatusProperty observableStatus = new SimpleStatusProperty();
+    public SimpleSiteProperty site = new SimpleSiteProperty();
+    public SimpleBooleanProperty property;
     boolean isDeleted = false;
-    public Mod(String n, String l, ModPackManagerController.Site s, Status stat, TableView<Mod> mods, CheckBox modBox) {
+    public Mod(String n, String l, SimpleSiteProperty.Site s, SimpleStatusProperty.Status stat, ModPackManager instance) {
         name = new SimpleStringProperty(n);
+        name.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
         link = l;
-        site = s;
-        status = stat;
+        site.set(s);
+        observableStatus.set(stat);
+        observableStatus.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
         property = new SimpleBooleanProperty();
         property.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
         {
+            if (isDeleted) return;
             boolean allChecked = true;
-            for (var item : mods.getItems())
+            for (var item : instance.mods.getItems())
             {
                 if (!item.property.get()) allChecked = false;
             }
-            modBox.setSelected(allChecked);
+            instance.modBox.setSelected(allChecked);
+            instance.jsonManager.autoSave(instance.jsonManager.saveData);
         });
     }
-    public Mod(String n, String l, ModPackManagerController.Site s, String stat, TableView<Mod> mods, CheckBox modBox) {
+    public Mod(String n, String l, String s, SimpleStatusProperty.Status stat, ModPackManager instance) {
         name = new SimpleStringProperty(n);
+        name.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
         link = l;
-        site = s;
-        if (stat.equals("Update Available!")) status = Status.UPDATEAVAILABLE;
-        if (stat.equals("Installed")) status = Status.INSTALLED;
-        if (stat.equals("Not installed")) status = Status.NOTINSTALLED;
-        if (stat.equals("Downloading")) status = Status.DOWNLOADING;
+        site.set(s);
+        observableStatus.set(stat);
+        observableStatus.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
         property = new SimpleBooleanProperty();
         property.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
         {
+            if (isDeleted) return;
             boolean allChecked = true;
-            for (var item : mods.getItems())
+            for (var item : instance.mods.getItems())
             {
                 if (!item.property.get()) allChecked = false;
             }
-            modBox.setSelected(allChecked);
+            instance.modBox.setSelected(allChecked);
+            instance.jsonManager.autoSave(instance.jsonManager.saveData);
         });
     }
-    public SimpleStringProperty parseStatusObservable()
-    {
-        return new SimpleStringProperty()
+    public Mod(String n, String l, String s, String stat, ModPackManager instance) {
+        name = new SimpleStringProperty(n);
+        name.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
+        link = l;
+        site.set(s);
+        observableStatus.set(stat);
+        observableStatus.addListener((ChangeListener<? super String>)
+                (_,__,___) ->
+                        instance.jsonManager.autoSave(instance.jsonManager.saveData));
+        property = new SimpleBooleanProperty();
+        property.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
         {
-            @Override
-            public String get()
+            if (isDeleted) return;
+            boolean allChecked = true;
+            for (var item : instance.mods.getItems())
             {
-                if (status == Status.UPDATEAVAILABLE) return "Update Available!";
-                else if (status == Status.INSTALLED) return "Installed";
-                else if (status == Status.NOTINSTALLED) return "Not installed";
-                else if (status == Status.DOWNLOADING) return "Downloading";
-                return "";
+                if (!item.property.get()) allChecked = false;
             }
-            @Override
-            public void set(String set)
-            {
-                if (set.equals("Update Available!")) status = Status.UPDATEAVAILABLE;
-                else if (set.equals("Installed")) status = Status.INSTALLED;
-                else if (set.equals("Not installed")) status = Status.NOTINSTALLED;
-                else if (set.equals("Downloading")) status = Status.DOWNLOADING;
-                else status = Status.NULL;
-            }
-        };
+            instance.modBox.setSelected(allChecked);
+            instance.jsonManager.autoSave(instance.jsonManager.saveData);
+        });
     }
 
     /**
@@ -92,7 +101,7 @@ public class Mod {
         try
         {
             isDeleted = true;
-            if (currentFile == null || !currentFile.deleteFolder())
+            if (currentFile != null && !currentFile.deleteFolder())
                 ModPackManagerController.showError("Mod File Delete Failure",
                     "Failed to delete selected mod, " + name.get() + "'s, file");
             if (currentFile != null)
@@ -116,21 +125,11 @@ public class Mod {
                 property.unbind();
                 property = null;
             }
-            link = null;
-            index = null;
         }
         catch (Exception e)
         {
-            ModPackManagerController.showException(e);
+            Platform.runLater(() ->ModPackManagerController.showException(e));
         }
     }
 
-    public enum Status
-    {
-        NULL,
-        INSTALLED,
-        NOTINSTALLED,
-        UPDATEAVAILABLE,
-        DOWNLOADING,
-    }
 }

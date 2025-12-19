@@ -10,24 +10,6 @@ public class ModPackManagerController {
         return cell.getValue().name;
     }
 
-    protected static Site ParseFromString(String s)
-    {
-        if (s.equals("Reika's Site")) return Site.REIKA;
-        if (s.equals("Github")) return Site.GITHUB;
-        if (s.equals("Nexus Mods")) return Site.NEXUSMODS;
-        return Site.NULL;
-    }
-
-    protected static String convertToString(Site s)
-    {
-        return switch (s) {
-            case REIKA -> "Reika's Site";
-            case NULL -> "";
-            case GITHUB -> "Github";
-            case NEXUSMODS -> "Nexus Mods";
-        };
-    }
-
     public static void showError(String title, String message) {
         TextArea text = new TextArea(message);
         text.setEditable(false);
@@ -67,10 +49,4 @@ public class ModPackManagerController {
         return cell;
     }
 
-    public enum Site {
-        NULL,
-        REIKA,
-        GITHUB,
-        NEXUSMODS
-    }
 }
