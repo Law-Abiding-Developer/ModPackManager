@@ -154,7 +154,7 @@ public class ModPackManager extends Application {
                         mods.refresh();
                     }
                 });
-                return row;//
+                return row;
             });
             width = SCROLLBAR_WIDTH;
             for (var column : modpacks.getColumns())
