@@ -1,6 +1,8 @@
-package com.lad.mmp;
+package com.lad.mmp.Main;
 
 
+import com.lad.mmp.Misc.SimpleSiteProperty;
+import com.lad.mmp.Misc.SimpleStatusProperty;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;

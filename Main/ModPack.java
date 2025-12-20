@@ -1,4 +1,4 @@
-package com.lad.mmp;
+package com.lad.mmp.Main;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -8,11 +8,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableView;
-
-import java.io.FileWriter;
 
 public class ModPack {//TODO: add import and export button
     public SimpleStringProperty name;

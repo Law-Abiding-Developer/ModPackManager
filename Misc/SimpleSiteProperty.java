@@ -1,4 +1,4 @@
-package com.lad.mmp;
+package com.lad.mmp.Misc;
 
 import javafx.beans.property.SimpleStringProperty;
 

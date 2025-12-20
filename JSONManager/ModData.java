@@ -1,8 +1,6 @@
 package com.lad.mmp.JSONManager;
 
-import com.lad.mmp.Mod;
-
-import java.util.List;
+import com.lad.mmp.Main.Mod;
 
 public class ModData {
     public String name;

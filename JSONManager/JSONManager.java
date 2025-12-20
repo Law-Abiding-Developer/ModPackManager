@@ -3,14 +3,12 @@ package com.lad.mmp.JSONManager;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import com.lad.mmp.*;
+import com.lad.mmp.Main.*;
+import com.lad.mmp.Misc.SimpleStatusProperty;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
-import javafx.scene.control.Cell;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TableView;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -54,6 +52,7 @@ public class JSONManager {
                     {
                         var modFolder = new ModFolder(mod.path);
                         if (modFolder.exists()) actualMod.currentFile = modFolder;
+                        else actualMod.observableStatus.set(SimpleStatusProperty.Status.NOTDOWNLOADED);
                     }
                     mods.add(actualMod);
                 }

@@ -58,6 +58,6 @@ Once a release is officially out, you'll be able to download a zip file on the r
      - In your version of terminal, move the running directory to where the icon and folder containing the `.jar` file is.
        - You can do that with this command: `cd absolute/path/to/app/to/package`
      - Run this command:
-       - ```jpackage --type app-image --input ModPackManager --main-jar mmp.jar --main-class com.lad.mmp.Launcher --name ModPackManager --icon Untitled1_20251208104439.icns```
+       - ```jpackage --type app-image --input ModPackManager --main-jar mmp.jar --main-class com.lad.mmp.Main.Launcher --name ModPackManager --icon Untitled1_20251208104439.icns```
      - Ensure the app is not in the Downloads folder.
    - **32-bit systems MAY NOT be able to run this. IF YOU ATTEMPT TO RUN THIS APP ON A 32-BIT SYSTEM, EXPECT MANY CRASH RELATED BUGS**

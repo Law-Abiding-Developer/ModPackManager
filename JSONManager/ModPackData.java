@@ -1,7 +1,6 @@
 package com.lad.mmp.JSONManager;
 
-import com.lad.mmp.Mod;
-import com.lad.mmp.ModPack;
+import com.lad.mmp.Main.ModPack;
 
 import java.util.LinkedList;
 import java.util.List;

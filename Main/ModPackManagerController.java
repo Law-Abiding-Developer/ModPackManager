@@ -1,4 +1,4 @@
-package com.lad.mmp;
+package com.lad.mmp.Main;
 
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.*;
