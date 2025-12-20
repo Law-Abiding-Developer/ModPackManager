@@ -4,7 +4,7 @@ import javafx.beans.property.SimpleStringProperty;
 
 public class SimpleStatusProperty extends SimpleStringProperty
 {
-    private Status status = Status.NULL;
+    private Status status = Status.NOTDOWNLOADED;
     @Override
     public String get()
     {
@@ -12,6 +12,7 @@ public class SimpleStatusProperty extends SimpleStringProperty
         else if (status == Status.INSTALLED) return "Installed";
         else if (status == Status.NOTINSTALLED) return "Not installed";
         else if (status == Status.DOWNLOADING) return "Downloading";
+        else if (status == Status.NOTDOWNLOADED) return "Not Downloaded";
         return "";
     }
     public Status getStatus()
@@ -25,7 +26,7 @@ public class SimpleStatusProperty extends SimpleStringProperty
         else if (set.equals("Installed")) status = Status.INSTALLED;
         else if (set.equals("Not installed")) status = Status.NOTINSTALLED;
         else if (set.equals("Downloading")) status = Status.DOWNLOADING;
-        else status = Status.NULL;
+        else if (set.equals("Not Downloaded")) status = Status.NOTDOWNLOADED;
         super.set(set);
     }
     public void set(Status stat)
@@ -36,10 +37,10 @@ public class SimpleStatusProperty extends SimpleStringProperty
 
     public enum Status
     {
-        NULL,
+        NOTDOWNLOADED,
         INSTALLED,
         NOTINSTALLED,
         UPDATEAVAILABLE,
-        DOWNLOADING,
+        DOWNLOADING
     }
 }

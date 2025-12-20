@@ -20,6 +20,7 @@ public class ModData {
         if (mod.version != null) version = mod.version.get();
         else version = "";
         if (mod.currentFile != null) path = mod.currentFile.getAbsolutePath();
+        else path = "";
         status = mod.observableStatus.get();
 
     }

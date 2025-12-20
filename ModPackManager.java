@@ -51,9 +51,17 @@ public class ModPackManager extends Application {
     boolean shiftKeyPressed = false;
     final JSONManager jsonManager = new JSONManager();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private Runnable update;
     @Override
     public void start(Stage stage) {
         try {
+            update = () ->
+            {
+                Platform.runLater(() -> mods.refresh());
+                Platform.runLater(() -> modpacks.refresh());
+                scheduleAsyncTask(update, 500, TimeUnit.MILLISECONDS);
+            };
+            scheduleAsyncTask(update, 500, TimeUnit.MILLISECONDS);
             jsonManager.start(savePath, this);
             PrintStream log = new PrintStream(new FileOutputStream(
                     System.getProperty("user.home")
@@ -249,7 +257,7 @@ public class ModPackManager extends Application {
                         {
                             return new Mod(nameField.getText(), linkField.getText(),
                                     choice.getValue(),
-                                    SimpleStatusProperty.Status.NOTINSTALLED, this);
+                                    SimpleStatusProperty.Status.NOTDOWNLOADED, this);
                         }
                     }
                     catch (Exception f)
@@ -394,7 +402,7 @@ public class ModPackManager extends Application {
                                 updateProgress(pogress++ + 7, maxProgress);
                                 HttpResponse<Path> downloadedFile = client.send(request,
                                         HttpResponse.BodyHandlers.ofFile(mod.currentFile.toPath()));
-
+                                for (int i = 0; i < 50; i++) Thread.sleep(1);
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++ + 7, maxProgress);
                             }
@@ -407,6 +415,7 @@ public class ModPackManager extends Application {
                         }
                         catch (Exception ex)
                         {
+                            mod.observableStatus.set(SimpleStatusProperty.Status.NOTDOWNLOADED);
                             Platform.runLater(() -> ModPackManagerController.showException(ex, "Mod Download Failed! Failed to download files for mod " + mod.name.get().trim() + "! Skipping..." + System.lineSeparator() + "Exception:"));
                         }
                     }
@@ -632,7 +641,7 @@ public class ModPackManager extends Application {
                                 }
                                 zis.closeEntry();
                                 zis.close();
-                                if (mod.site.getSite() == SimpleSiteProperty.Site.REIKA)
+                                if (mod.site.getSite() == SimpleSiteProperty.Site.REIKA && modPack.version.get().equals("Legacy"))
                                 {
                                     var version = Files.readString(Path.of(mod.currentFile.getAbsolutePath() + File.separator + "current-version.txt"));
                                     mod.version = new SimpleStringProperty(version.substring(0, 5));
@@ -694,5 +703,9 @@ public class ModPackManager extends Application {
     public void scheduleAsyncTask(Runnable task)
     {
         scheduler.submit(task);
+    }
+    public void scheduleAsyncTask(Runnable task, long timeDelay, TimeUnit unit)
+    {
+        scheduler.schedule(task, timeDelay, unit);
     }
 }

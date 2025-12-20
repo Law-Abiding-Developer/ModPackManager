@@ -47,11 +47,20 @@ public class JSONManager {
             {
                 List<Mod> mods = new LinkedList<>();
                 for (var mod : item.mods)
-                    mods.add(new Mod(mod.name, mod.link, mod.site,
-                            mod.status, mmp));
+                {
+                    var actualMod = new Mod(mod.name, mod.link, mod.site,
+                        mod.status, mmp);
+                    if (mod.path != null && !mod.path.isBlank())
+                    {
+                        var modFolder = new ModFolder(mod.path);
+                        if (modFolder.exists()) actualMod.currentFile = modFolder;
+                    }
+                    mods.add(actualMod);
+                }
                 var observableMods = FXCollections.observableArrayList(mods);
                 Platform.runLater(() -> mmp.modpacks.getItems().add(new ModPack(item.name, observableMods, item.modFilePath, item.game, item.version, mmp)));
-            }} catch (Exception e) {
+            }
+            } catch (Exception e) {
                 Platform.runLater(() -> ModPackManagerController.showException(e));
             }
             return null;
@@ -85,11 +94,6 @@ public class JSONManager {
     }
     public void autoSave(Runnable task)
     {
-        Platform.runLater(() ->
-        {
-            mmp.modpacks.refresh();
-            mmp.mods.refresh();
-        });
         if (save != null && !save.isDone())
             save.cancel(false);
         modpacks = new LinkedList<>();
