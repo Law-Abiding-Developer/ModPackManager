@@ -1,19 +1,17 @@
 package com.lad.mmp.Main;
 
 import com.lad.mmp.JSONManager.JSONManager;
-import com.lad.mmp.Misc.Buttons;
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
@@ -21,7 +19,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import jdk.jshell.spi.ExecutionControl;
 
 import java.awt.*;
 import java.io.*;
@@ -37,26 +34,30 @@ import static com.lad.mmp.Misc.Buttons.*;
 
 public class ModPackManager extends Application {
     public TableView<ModPack> modpacks = new TableView<>();
-    ObservableList<ModPack> list = FXCollections.observableArrayList();
-
     public TableView<Mod> mods = new TableView<>();
+    public ModPackList modList = new ModPackList();
     String savePath = System.getProperty("user.home") + File.separator + ".modpackmanager" + File.separator + "data" + File.separator + "MMPSaveData.json";
     public CheckBox modBox = new CheckBox();
     public CheckBox modpackBox = new CheckBox();
     public boolean shiftKeyPressed = false;
     final JSONManager jsonManager = new JSONManager();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private Runnable update;
     @Override
     public void start(Stage stage) {
         try {
-            update = () ->
+
+            Runnable update = () ->
             {
-                Platform.runLater(() -> mods.refresh());
-                Platform.runLater(() -> modpacks.refresh());
-                scheduleAsyncTask(update, 500, TimeUnit.MILLISECONDS);
+                try {
+                    Platform.runLater(() -> {
+                        if (mods != null) mods.refresh();
+                    });
+                    Platform.runLater(() -> {if (modpacks != null) modpacks.refresh();});
+                } catch (Throwable t) {
+                    Platform.runLater(() -> ModPackManagerController.showException(t, "Scheduled Update Error. Continuing thread..."));
+                }
             };
-            scheduleAsyncTask(update, 500, TimeUnit.MILLISECONDS);
+            scheduler.scheduleAtFixedRate(update, 500, 500, TimeUnit.MILLISECONDS);
             jsonManager.start(savePath, this);
             PrintStream log = new PrintStream(new FileOutputStream(
                     System.getProperty("user.home")
@@ -70,100 +71,9 @@ public class ModPackManager extends Application {
                         shiftKeyPressed = e.isShiftDown();
                         return false;
                     });
-            //TODO: Add way to share mods.
-            TableColumn<Mod, String> modColumn = new TableColumn<>("Mod Name");
-            modColumn.setCellValueFactory(callBack ->
-                    callBack.getValue().name);
-            modColumn.setPrefWidth(125);
-            TableColumn<Mod, String> modVersion = new TableColumn<>("Current version");
-            modVersion.setCellValueFactory(callBack ->
-                    callBack.getValue().version);
-            modVersion.setResizable(true);
-            modVersion.setMaxWidth(200);
-            modVersion.setMinWidth(50);
-            modVersion.setPrefWidth(100);
-            TableColumn<Mod, String> modSite = new TableColumn<>();
-            modSite.setCellValueFactory(callBack ->
-                    callBack.getValue().site);
-            Label header = new Label("Site");
-            header.setTooltip(new Tooltip("Click to copy link"));
-            modSite.setGraphic(header);
-            modSite.setCellFactory(column ->
-            {
-                TableCell<Mod, String> cell = new TableCell<>() {
-                    @Override
-                    protected void updateItem(String item, boolean empty) {
-                        super.updateItem(item, empty);
-                        if (empty || item == null) {
-                            setText(null);
-                            setTooltip(null);
-                        } else {
-                            setText(item);
-                            var tooltip = new Tooltip("Click to copy link");
-                            tooltip.setShowDelay(new Duration(0.1));
-                            setTooltip(tooltip);
-                        }
-                    }
-                };
-                cell.setOnMouseClicked(mouseEvent ->
-                        {
-                            Clipboard clipboard = Clipboard.getSystemClipboard();
-                            ClipboardContent content = new ClipboardContent();
-                            Mod mod = cell.getTableView().getItems().get(cell.getIndex());
-                            String string = mod.link;
-                            content.putString(string);
-                            clipboard.setContent(content);
-                        }
-                );
-                return cell;
-            });
-            TableColumn<Mod, String> modStatus = new TableColumn<>("Status");
-            modStatus.setCellValueFactory(callBack ->
-                    callBack.getValue().observableStatus);
-            mods.getColumns().addAll(getCheckBoxColumn(), modColumn, modVersion, modSite, modStatus);
-            mods.setPlaceholder(new Label("Select a modpack to view mods" + System.lineSeparator() + "Unless the modpack has 0 mods"));
-            final double SCROLLBAR_WIDTH = 17;
-            double width = SCROLLBAR_WIDTH;
-            for (var column : mods.getColumns())
-            {
-                width += column.getPrefWidth();
-            }
-            mods.setMaxWidth(width+200);
-            mods.setPrefWidth(width);
-            mods.setMaxHeight(400);
+            //TODO: Add way to share mods
+            setUpModPackTable(setUpModTable());
 
-            TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack Name");
-            modPackColumn.setCellValueFactory(ModPackManagerController::cellFactory);
-            modPackColumn.setPrefWidth(125);
-            TableColumn<ModPack, Integer> modPackValueColumn = new TableColumn<>("Size");
-            modPackValueColumn.setCellValueFactory(callBack ->
-                    callBack.getValue().size.asObject());
-            modPackValueColumn.setPrefWidth(50);
-            TableColumn<ModPack, String> modPackGameColumn = new TableColumn<>("Game");
-            modPackGameColumn.setCellValueFactory(e -> e.getValue().game);
-            TableColumn<ModPack, String> modPackVersionColumn = new TableColumn<>("Version");
-            modPackVersionColumn.setCellValueFactory(e -> e.getValue().version);
-            modpacks.getColumns().addAll(getModPackCheckBoxColumn(), modPackColumn, modPackValueColumn, modPackGameColumn, modPackVersionColumn);
-            modpacks.setItems(list);
-            modpacks.setRowFactory(tv -> {
-                TableRow<ModPack> row = new TableRow<>();
-                row.setOnMouseClicked(event -> {
-                    if (!row.isEmpty()) {
-                        ModPack selectedItem = row.getItem();
-                        mods.setItems(selectedItem.mods);
-                        mods.refresh();
-                    }
-                });
-                return row;
-            });
-            width = SCROLLBAR_WIDTH;
-            for (var column : modpacks.getColumns())
-            {
-                width += column.getPrefWidth();
-            }
-            modpacks.setMaxWidth(width+200);
-            modpacks.setPrefWidth(width);
-            modpacks.setMaxHeight(400);
 
             TextArea text = new TextArea("""
                     INSTRUCTIONS (REFERENCE FOR HELP)
@@ -173,7 +83,7 @@ public class ModPackManager extends Application {
                     
                     Each Button's purpose
                     
-                    """);//TODO: Add pages for text plane instructions
+                    """);//CUT xTODO: Add pages for text plane instructions
             text.setWrapText(true);
             text.setEditable(false);
             double textWidth = 330;
@@ -198,7 +108,7 @@ public class ModPackManager extends Application {
             HBox textBox = new HBox(10, topText);
             textBox.setStyle("-fx-font-size: 26px;");
             VBox root = new VBox(10, textBox, tableBox, buttonBox);
-            Scene scene = new Scene(root, 1200, 550);
+            Scene scene = new Scene(root, 1300, 550);
             stage.setTitle("Mod Pack Manager");
             stage.setScene(scene);
             stage.show();
@@ -211,6 +121,106 @@ public class ModPackManager extends Application {
             ModPackManagerController.showError("Error", e.getClass() + " " + System.lineSeparator() + message);
         }
     }
+
+    private void setUpModPackTable(double SCROLLBAR_WIDTH) {
+        double width;
+        TableColumn<ModPack, String> modPackColumn = new TableColumn<>("Mod Pack Name");
+        modPackColumn.setCellValueFactory(ModPackManagerController::cellFactory);
+        modPackColumn.setPrefWidth(125);
+        TableColumn<ModPack, Integer> modPackValueColumn = new TableColumn<>("Size");
+        modPackValueColumn.setCellValueFactory(callBack ->
+                callBack.getValue().size.asObject());
+        modPackValueColumn.setPrefWidth(50);
+        TableColumn<ModPack, String> modPackGameColumn = new TableColumn<>("Game");
+        modPackGameColumn.setCellValueFactory(e -> e.getValue().game);
+        TableColumn<ModPack, String> modPackVersionColumn = new TableColumn<>("Version");
+        modPackVersionColumn.setCellValueFactory(e -> e.getValue().version);
+        modpacks.getColumns().addAll(getModPackCheckBoxColumn(), modPackColumn, modPackValueColumn, modPackGameColumn, modPackVersionColumn);
+        modpacks.setItems(modList.mainList);
+        width = SCROLLBAR_WIDTH;
+        for (var column : modpacks.getColumns())
+        {
+            width += column.getPrefWidth();
+        }
+        modpacks.setMaxWidth(width+200);
+        modpacks.setPrefWidth(width);
+        modpacks.setMaxHeight(400);
+    }
+
+    private double setUpModTable() {
+        TableColumn<Mod, String> modColumn = new TableColumn<>("Mod Name");
+        modColumn.setCellValueFactory(callBack ->
+                callBack.getValue().name);
+        modColumn.setPrefWidth(125);
+        TableColumn<Mod, String> modVersion = new TableColumn<>("Current version");
+        modVersion.setCellValueFactory(callBack ->
+                callBack.getValue().version);
+        modVersion.setResizable(true);
+        modVersion.setMaxWidth(200);
+        modVersion.setMinWidth(50);
+        modVersion.setPrefWidth(100);
+        TableColumn<Mod, String> modSite = new TableColumn<>();
+        modSite.setCellValueFactory(callBack ->
+                callBack.getValue().site);
+        Label header = new Label("Site");
+        header.setTooltip(new Tooltip("Click to copy link"));
+        modSite.setGraphic(header);
+        modSite.setCellFactory(column ->
+        {
+            TableCell<Mod, String> cell = new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setTooltip(null);
+                    } else {
+                        setText(item);
+                        var tooltip = new Tooltip("Click to copy link");
+                        tooltip.setShowDelay(new Duration(0.1));
+                        setTooltip(tooltip);
+                    }
+                }
+            };
+            cell.setOnMouseClicked(mouseEvent ->
+                    {
+                        Clipboard clipboard = Clipboard.getSystemClipboard();
+                        ClipboardContent content = new ClipboardContent();
+                        Mod mod = cell.getTableView().getItems().get(cell.getIndex());
+                        String string = mod.link;
+                        content.putString(string);
+                        clipboard.setContent(content);
+                    }
+            );
+            return cell;
+        });
+        TableColumn<Mod, String> modStatus = new TableColumn<>("Status");
+        modStatus.setCellValueFactory(callBack ->
+                callBack.getValue().observableStatus);
+        var parentModPack = new TableColumn<Mod, String>("Mod Pack");
+        parentModPack.setCellValueFactory(callBack ->
+        {
+            if (callBack.getValue().parentModPack != null)
+                return callBack.getValue().parentModPack.name;
+            else
+                return new ReadOnlyStringWrapper("N/A");
+        });
+        parentModPack.setPrefWidth(125);
+        mods.getColumns().addAll(getCheckBoxColumn(), parentModPack, modColumn, modVersion, modSite, modStatus);
+        mods.setPlaceholder(new Label("Select a modpack (click a check box) to view mods" + System.lineSeparator() + "Unless the modpack has 0 mods, then add a mod to see mods here."));
+        mods.setItems(modList.combinedList);
+        final double SCROLLBAR_WIDTH = 17;
+        double width = SCROLLBAR_WIDTH;
+        for (var column : mods.getColumns())
+        {
+            width += column.getPrefWidth();
+        }
+        mods.setMaxWidth(width+200);
+        mods.setPrefWidth(width);
+        mods.setMaxHeight(400);
+        return SCROLLBAR_WIDTH;
+    }
+
     @Override
     public void stop() throws Exception {
         jsonManager.stop();
@@ -267,35 +277,46 @@ public class ModPackManager extends Application {
     }
     public void modPackDeleteHelper()
     {
-        for (var item : new ArrayList<>(modpacks.getItems()))
+        try
         {
-            if (item.isSelected.get())
-            {
-                item.isDeleted = true;
-                try
-                {
+            for (var item : new ArrayList<>(modpacks.getItems())) {
+                if (item.isSelected.get()) {
+                    item.isDeleted = true;
                     for (var mod : new ArrayList<>(item.mods))
-                        mod.delete(item.mods);
-                } catch (Exception ex) {
-                    Platform.runLater(() ->ModPackManagerController.showException(ex));
+                        mod.delete(item.mods,mods);
+                    Platform.runLater(() -> modpacks.getItems().remove(item));
+                    if (modpacks.getItems().isEmpty()) mods.setItems(null);
+                    else modpacks.getSelectionModel().select(0);
+                    mods.refresh();
                 }
-                Platform.runLater(() ->modpacks.getItems().remove(item));
-                if (modpacks.getItems().isEmpty()) mods.setItems(null);
-                else modpacks.getSelectionModel().select(0);
-                mods.refresh();
             }
+        } catch (Exception e) {
+            Platform.runLater(() -> ModPackManagerController.showException(e));
         }
     }
     public void modDeleteHelper()
     {
-        for (var mod : new LinkedList<>(mods.getItems()))
+        try
         {
-            if (mod.property.get())
+            for (var mod : new LinkedList<>(mods.getItems()))
+                if (mod.property.get())
+                    for (var modpack : modpacks.getItems()) if (modpack.mods.contains(mod))
+                            mod.delete(modpack.mods,mods);
+        }
+        catch (Exception e)
+        {
+            Platform.runLater(() -> ModPackManagerController.showException(e));
+        }
+    }
+    public void checkVersions()
+    {
+        for (var modpack : modpacks.getItems())
+        {
+            for (var mod : modpack.mods)
             {
-                mod.delete(modpacks.getSelectionModel().getSelectedItem().mods);
+                mod.checkVersion();
             }
         }
-
     }
     public void scheduleAsyncTask(Runnable task)
     {
@@ -304,5 +325,10 @@ public class ModPackManager extends Application {
     public void scheduleAsyncTask(Runnable task, long timeDelay, TimeUnit unit)
     {
         scheduler.schedule(task, timeDelay, unit);
+    }
+
+    public void modUninstallHelper()
+    {
+        //CUT TODO: Implement mod uninstall
     }
 }

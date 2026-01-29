@@ -13,7 +13,8 @@ public class SimpleStatusProperty extends SimpleStringProperty
         else if (status == Status.NOTINSTALLED) return "Not installed";
         else if (status == Status.DOWNLOADING) return "Downloading";
         else if (status == Status.NOTDOWNLOADED) return "Not Downloaded";
-        return "";
+        else if (status == Status.INSTALLING) return "Installing";
+        return super.get();
     }
     public Status getStatus()
     {
@@ -27,6 +28,8 @@ public class SimpleStatusProperty extends SimpleStringProperty
         else if (set.equals("Not installed")) status = Status.NOTINSTALLED;
         else if (set.equals("Downloading")) status = Status.DOWNLOADING;
         else if (set.equals("Not Downloaded")) status = Status.NOTDOWNLOADED;
+        else if (set.equals("Installing")) status = Status.INSTALLING;
+        else status = Status.NOTDOWNLOADED;
         super.set(set);
     }
     public void set(Status stat)
@@ -41,6 +44,7 @@ public class SimpleStatusProperty extends SimpleStringProperty
         INSTALLED,
         NOTINSTALLED,
         UPDATEAVAILABLE,
-        DOWNLOADING
+        DOWNLOADING,
+        INSTALLING
     }
 }

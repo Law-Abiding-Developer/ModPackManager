@@ -1,9 +1,17 @@
 package com.lad.mmp.Main;
 
+import javafx.application.Platform;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Objects;
 
 public class ModFolder extends File {
     public ModFolder(@NotNull String pathname) {
@@ -23,15 +31,33 @@ public class ModFolder extends File {
     }
     public boolean deleteFolder()
     {
-        var files = listFiles();
-        boolean failed = false;
-        if (files != null)
-            for (var item : files)
+        try
+        {
+            if (!exists()) return true;
+            if (!isDirectory()) return delete();
+            Files.walkFileTree(toPath(), new SimpleFileVisitor<>()
             {
-                if (item.isDirectory()) failed = !item.deleteFolder();
-                else failed = !item.delete();
-            }
-        return !failed && delete();
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+                {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException
+                {
+                    if (exc != null) throw exc;
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            Platform.runLater(()->ModPackManagerController.showException(e));
+        }
+        return false;
     }
     @Override
     public ModFolder[] listFiles()

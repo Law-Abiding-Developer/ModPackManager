@@ -6,6 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.lad.mmp.Main.*;
 import com.lad.mmp.Misc.SimpleStatusProperty;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
@@ -52,12 +53,24 @@ public class JSONManager {
                     {
                         var modFolder = new ModFolder(mod.path);
                         if (modFolder.exists()) actualMod.currentFile = modFolder;
-                        else actualMod.observableStatus.set(SimpleStatusProperty.Status.NOTDOWNLOADED);
+                        else actualMod.currentFile = null;
+                    }
+                    if (mod.backUpPath != null && !mod.backUpPath.isBlank())
+                    {
+                        var backUpFolder = new ModFolder(mod.backUpPath);
+                        if (backUpFolder.exists()) actualMod.backUpFile = backUpFolder;
+                        else actualMod.backUpFile = null;
+                    }
+                    if (mod.version != null && !mod.version.isBlank())
+                    {
+                        actualMod.version = new SimpleStringProperty(mod.version);
+                        actualMod.checkVersion();
                     }
                     mods.add(actualMod);
                 }
                 var observableMods = FXCollections.observableArrayList(mods);
-                Platform.runLater(() -> mmp.modpacks.getItems().add(new ModPack(item.name, observableMods, item.modFilePath, item.game, item.version, mmp)));
+                var modpack = new ModPack(item.name, observableMods, item.modFilePath, item.game, item.version, mmp, item.duplicateCount);
+                Platform.runLater(() -> mmp.modList.mainList.add(modpack));
             }
             } catch (Exception e) {
                 Platform.runLater(() -> ModPackManagerController.showException(e));

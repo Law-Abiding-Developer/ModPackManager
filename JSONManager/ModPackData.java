@@ -12,10 +12,11 @@ public class ModPackData {
     public String version;
     public String game;
     public boolean isSelected;
+    public int duplicateCount;
     public ModPackData() {}
     public ModPackData(ModPack modpack)
     {
-        name = modpack.name.get();
+        name = modpack.name.get(true);
         mods = new LinkedList<>();
         for (var mod : modpack.mods)
         {
@@ -25,5 +26,6 @@ public class ModPackData {
         version = modpack.version.get();
         game = modpack.game.get();
         isSelected = modpack.isSelected.get();
+        duplicateCount = modpack.duplicateCount.get();
     }
 }

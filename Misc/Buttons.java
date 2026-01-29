@@ -1,25 +1,38 @@
 package com.lad.mmp.Misc;
 
 import com.lad.mmp.Main.*;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.collections.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 import jdk.jshell.spi.ExecutionControl;
 
 public class Buttons {
     public static Button getModButton(ModPackManager mmp)
     {
-        Button newModButton = new Button("Add Mod to Selected Mod Pack");
+        Button newModButton = new Button("Add Mod to a Mod Pack");
         newModButton.setOnAction(e ->
         {
-            ModPack selected = mmp.modpacks.getSelectionModel().getSelectedItem();
-            if (selected != null)
-            {
                 Dialog addMod = new Dialog();
                 addMod.setTitle("Add Details");
                 addMod.setHeaderText("Fill the boxes below with the mod info");
                 ChoiceBox<String> choice = new ChoiceBox<>();
+                ChoiceBox<ModPack> modPackChoice = new ChoiceBox<>();
+                modPackChoice.setItems(mmp.modpacks.getItems());
+                modPackChoice.converterProperty().set(new StringConverter<>()
+                {
+                    @Override
+                    public String toString(ModPack modPack)
+                    {
+                        if (modPack == null) return "";
+                        return modPack.name.get();
+                    }
+                    @Override
+                    public ModPack fromString(String s)
+                    {
+                        return null;
+                    }
+                });
                 ObservableList<String> list = FXCollections.observableArrayList();
                 //list.add("Github");
                 //list.add("Nexus Mods");
@@ -33,18 +46,24 @@ public class Buttons {
                 linkField.setPromptText("Link");
                 VBox content = new VBox(10, new Label("Name: "), nameField,
                         new Label("Link: "), linkField,
-                        new Label("Site: "), choice);
+                        new Label("Site: "), choice,
+                        new Label("Mod Pack: "), modPackChoice);
                 addMod.getDialogPane().setContent(content);
                 addMod.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            var getModPack = new Object() {
+                public ModPack modpack = null;
+            };
                 addMod.setResultConverter(button ->
                 {
                     try
                     {
                         if (button == ButtonType.OK)
                         {
+                            getModPack.modpack = modPackChoice.getValue();
                             return new Mod(nameField.getText(), linkField.getText(),
                                     choice.getValue(),
-                                    SimpleStatusProperty.Status.NOTDOWNLOADED, mmp);
+                                    SimpleStatusProperty.Status.NOTDOWNLOADED, mmp,modPackChoice.getValue());
+
                         }
                     }
                     catch (Exception f)
@@ -57,12 +76,10 @@ public class Buttons {
                 if (string.isPresent())
                 {
                     Mod mod = (Mod) string.get();
-                    selected.mods.add(mod);
-                    mmp.mods.setItems(selected.mods);
+                    if (getModPack.modpack != null) getModPack.modpack.mods.add(mod);
                     mmp.mods.refresh();
                     mmp.modpacks.refresh();
                 }
-            }
         });
         return newModButton;
     }
@@ -117,14 +134,23 @@ public class Buttons {
         });
         return newModPackButton;
     }
-    public static Button getModImportButton(ModPackManager mmp) throws Exception
+    public static Button getCopyButton(ModPackManager mmp)
     {
-        //TODO: Add file import button
-        throw new ExecutionControl.NotImplementedException("Method getModImportButton not implemented!");
+        Button copyButton = new Button("Create Duplicate Selected Mod Pack(s)");
+        copyButton.setOnAction(e ->
+        {
+            ModPackManagerController.showException(new ExecutionControl.NotImplementedException("Mod Pack Duplicating not implemented yet!"));
+            for (var modpack : mmp.modpacks.getItems())
+                if (modpack.isSelected.get())
+                {
+
+                }
+        });
+        return copyButton;
     }
     public static Button getAPIKeyButton(ModPackManager mmp) throws Exception
     {
-        //TODO: Add a button to request API key for Nexus
+        //CUT TODO: Add a button to request API key for Nexus. Move to Async later.
         throw new ExecutionControl.NotImplementedException("Method getAPIKeyButton not implemented!");
     }
 }

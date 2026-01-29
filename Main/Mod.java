@@ -8,6 +8,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.control.TableView;
 
 import java.util.List;
 
@@ -20,7 +21,10 @@ public class Mod {
     public SimpleSiteProperty site = new SimpleSiteProperty();
     public SimpleBooleanProperty property;
     boolean isDeleted = false;
-    public Mod(String n, String l, SimpleSiteProperty.Site s, SimpleStatusProperty.Status stat, ModPackManager instance) {
+    public ModPack parentModPack = null;
+    public ModFolder backUpFile = null;
+    public Mod(String n, String l, SimpleSiteProperty.Site s, SimpleStatusProperty.Status stat, ModPackManager instance, ModPack parentModPack) {
+        this.parentModPack = parentModPack;
         name = new SimpleStringProperty(n);
         name.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
@@ -44,7 +48,8 @@ public class Mod {
             instance.jsonManager.autoSave(instance.jsonManager.saveData);
         });
     }
-    public Mod(String n, String l, String s, SimpleStatusProperty.Status stat, ModPackManager instance) {
+    public Mod(String n, String l, String s, SimpleStatusProperty.Status stat, ModPackManager instance, ModPack parentModPack) {
+        this.parentModPack = parentModPack;
         name = new SimpleStringProperty(n);
         name.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
@@ -98,20 +103,24 @@ public class Mod {
      * @param activeList The list which contains the mod
      * @return false if something throws an exception. true if all was successful
      */
-    public void delete(List<Mod> activeList)
+    public void delete(List<Mod> activeList, TableView<Mod> tableView)
     {
         try
         {
             isDeleted = true;
             if (currentFile != null && !currentFile.deleteFolder())
-                ModPackManagerController.showError("Mod File Delete Failure",
-                    "Failed to delete selected mod, " + name.get() + "'s, file");
-            if (currentFile != null)
             {
-                currentFile = null;
-            }
-            if (!activeList.remove(this))
-                ModPackManagerController.showError("Mod List Removal Failure", "Mod, " + name + ", does not exist in the list");
+                isDeleted = false;
+                Platform.runLater(() ->ModPackManagerController.showError("Mod File Delete Failure",
+                    "Failed to delete selected mod, " + name.get() + "'s, file"));}
+            Platform.runLater(() ->
+            {
+                boolean removedFromList = activeList.remove(this);
+                boolean removedFromTable = tableView.getItems().remove(this);
+                if (!removedFromTable && !removedFromList)
+                   ModPackManagerController.showError("Mod List Removal Failure", "Mod, " + name + ", does not exist in the list");
+            });
+            Thread.sleep(10); // Give time for the UI thread to update
             if (name != null)
             {
                 name.unbind();
@@ -134,4 +143,28 @@ public class Mod {
         }
     }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        /*Mod mod = (Mod) obj;
+        return name.get().equals(mod.name.get()) && link.equals(mod.link) &&
+                site.get().equals(mod.site.get()) &&
+                observableStatus.get().equals(mod.observableStatus.get()) &&
+                ((version == null && mod.version == null) ||
+                 (version != null && mod.version != null && version.get().equals(mod.version.get())))
+                &&
+                ((currentFile == null && mod.currentFile == null) ||
+                 (currentFile != null && mod.currentFile != null &&
+                         currentFile.getAbsolutePath().equals(mod.currentFile.getAbsolutePath())))&&
+                property.get() == mod.property.get()
+                && isDeleted == mod.isDeleted;*/
+        return false;
+    }
+
+    public void checkVersion()
+    {
+        //TODO: Implement version checking logic
+    }
 }

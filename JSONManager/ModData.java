@@ -7,6 +7,7 @@ public class ModData {
     public String link;
     public String version;
     public String path;
+    public String backUpPath;
     public String site;
     public String status;
     public ModData(){}
@@ -19,6 +20,8 @@ public class ModData {
         else version = "";
         if (mod.currentFile != null) path = mod.currentFile.getAbsolutePath();
         else path = "";
+        if (mod.backUpFile != null) backUpPath = mod.backUpFile.getAbsolutePath();
+        else backUpPath = "";
         status = mod.observableStatus.get();
 
     }
