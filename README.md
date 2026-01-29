@@ -33,7 +33,7 @@ MMP has to be coded manually to be able to access sites on the internet or the c
 ### Update Information
 Currently, v0.5.0 is in progress, and almost ready for release. Update Information can be found in the Supported Game/Game Versions/Sites header. Support for each game/game version/site will be added one by one for each update. My plans will be in the header, so **DO NOT CONTACT ME ABOUT UPDATE PLANS**
 ### Releases
-v0.5.0 is coming out soon, hopefully before 12/25/2025. I hope I can release v1.0.0 by then too, but that depends.
+v0.5.0 is coming out soon. With the addition of someone, progress should be coming along quicker.
 ### How To Download
 Once a release is officially out, you'll be able to download a zip file on the right side of this GitHub repository below `About`. The `Releases` section will have this app until v1.0.0 where it will be released on Nexus
 #### Setup
