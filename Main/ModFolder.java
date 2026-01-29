@@ -29,10 +29,8 @@ public class ModFolder extends File {
     public ModFolder(@NotNull URI uri) {
         super(uri);
     }
-    public boolean deleteFolder()
+    public boolean deleteFolder() throws Exception
     {
-        try
-        {
             if (!exists()) return true;
             if (!isDirectory()) return delete();
             Files.walkFileTree(toPath(), new SimpleFileVisitor<>()
@@ -52,12 +50,7 @@ public class ModFolder extends File {
                     return FileVisitResult.CONTINUE;
                 }
             });
-        }
-        catch (Exception e)
-        {
-            Platform.runLater(()->ModPackManagerController.showException(e));
-        }
-        return false;
+            return true;
     }
     @Override
     public ModFolder[] listFiles()

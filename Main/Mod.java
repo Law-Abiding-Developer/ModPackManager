@@ -112,7 +112,9 @@ public class Mod {
             {
                 isDeleted = false;
                 Platform.runLater(() ->ModPackManagerController.showError("Mod File Delete Failure",
-                    "Failed to delete selected mod, " + name.get() + "'s, file"));}
+                    "Failed to delete selected mod, " + name.get() + "'s, file"));
+                return;
+            }
             Platform.runLater(() ->
             {
                 boolean removedFromList = activeList.remove(this);
@@ -120,7 +122,6 @@ public class Mod {
                 if (!removedFromTable && !removedFromList)
                    ModPackManagerController.showError("Mod List Removal Failure", "Mod, " + name + ", does not exist in the list");
             });
-            Thread.sleep(10); // Give time for the UI thread to update
             if (name != null)
             {
                 name.unbind();
@@ -147,19 +148,6 @@ public class Mod {
     public boolean equals(Object obj)
     {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        /*Mod mod = (Mod) obj;
-        return name.get().equals(mod.name.get()) && link.equals(mod.link) &&
-                site.get().equals(mod.site.get()) &&
-                observableStatus.get().equals(mod.observableStatus.get()) &&
-                ((version == null && mod.version == null) ||
-                 (version != null && mod.version != null && version.get().equals(mod.version.get())))
-                &&
-                ((currentFile == null && mod.currentFile == null) ||
-                 (currentFile != null && mod.currentFile != null &&
-                         currentFile.getAbsolutePath().equals(mod.currentFile.getAbsolutePath())))&&
-                property.get() == mod.property.get()
-                && isDeleted == mod.isDeleted;*/
         return false;
     }
 
