@@ -25,6 +25,11 @@ public class JSONManager {
     private ScheduledFuture<?> save;
     public final Runnable saveData = () ->
     {
+        modpacks = new LinkedList<>();
+        for (var item : mmp.modpacks.getItems())
+        {
+            modpacks.add(new ModPackData(item));
+        }
         try (var fileWriter = new FileWriter(folder))
         {
             gson.toJson(modpacks, fileWriter);
@@ -108,11 +113,6 @@ public class JSONManager {
     {
         if (save != null && !save.isDone())
             save.cancel(false);
-        modpacks = new LinkedList<>();
-        for (var item : mmp.modpacks.getItems())
-        {
-            modpacks.add(new ModPackData(item));
-        }
         save = service.schedule(task, 750, TimeUnit.MILLISECONDS);
     }
     public void stop()
