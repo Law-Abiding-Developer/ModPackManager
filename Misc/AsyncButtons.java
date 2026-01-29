@@ -95,7 +95,7 @@ public class AsyncButtons {
                         Platform.runLater(() ->progress.setHeaderText("Downloading " + mmp.count + " mods. You can keep"
                                 + System.lineSeparator() + "working while this is going."
                                 + System.lineSeparator() + "Downloading " + mod.name.get() + "..."));
-                        try {//CUT TODO: code nexus backend for downloading site
+                        try {
                             if (!mod.property.get()) continue;
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
