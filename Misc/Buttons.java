@@ -1,5 +1,6 @@
 package com.lad.mmp.Misc;
 
+import com.lad.mmp.DerivedClasses.SimpleStatusProperty;
 import com.lad.mmp.Main.*;
 import javafx.collections.*;
 import javafx.scene.control.*;

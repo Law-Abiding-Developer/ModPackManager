@@ -1,6 +1,7 @@
 package com.lad.mmp.Main;
 
-import com.lad.mmp.Misc.*;
+import com.lad.mmp.DerivedClasses.ModPackName;
+import javafx.application.Platform;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -10,14 +11,14 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
 public class ModPack {//TODO: add import and export button
     public ModPackName name = new ModPackName();
     public ObservableList<Mod> mods;
     public IntegerProperty size;
     public SimpleStringProperty modFilePath;
+    public ModFolder downloadFolder;
     public SimpleStringProperty version;
     public SimpleStringProperty game;
     public boolean isDeleted = false;
@@ -53,10 +54,12 @@ public class ModPack {//TODO: add import and export button
         version.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
                         instance.jsonManager.autoSave(instance.jsonManager.saveData));
-        modFilePath = new SimpleStringProperty(mFP);
+        modFilePath = new SimpleStringProperty(mFP + File.separator + name.get());
         modFilePath.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
                         instance.jsonManager.autoSave(instance.jsonManager.saveData));
+        downloadFolder = new ModFolder(mFP + File.separator + name.get());
+        try{downloadFolder.ensureExists();}catch(Exception e){Platform.runLater(()-> ModPackManagerController.showException(e, "Failed to create modpack download folder: " + downloadFolder.getAbsolutePath()));}
         isSelected = new SimpleBooleanProperty(false);
         isSelected.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
         {
@@ -105,10 +108,12 @@ public class ModPack {//TODO: add import and export button
         version.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
                         instance.jsonManager.autoSave(instance.jsonManager.saveData));
-        modFilePath = new SimpleStringProperty(mFP);
+        modFilePath = new SimpleStringProperty(mFP + File.separator + name.get());
         modFilePath.addListener((ChangeListener<? super String>)
                 (_,__,___) ->
                         instance.jsonManager.autoSave(instance.jsonManager.saveData));
+        downloadFolder = new ModFolder(mFP + File.separator + name.get());
+        try{downloadFolder.ensureExists();}catch(Exception e){Platform.runLater(()-> ModPackManagerController.showException(e, "Failed to create modpack download folder: " + downloadFolder.getAbsolutePath()));}
         isSelected = new SimpleBooleanProperty(false);
         isSelected.addListener((ObservableValue<? extends Boolean> obsVal, Boolean oldVal, Boolean newVal) ->
         {

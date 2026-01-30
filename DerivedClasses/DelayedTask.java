@@ -1,4 +1,4 @@
-package com.lad.mmp.Misc;
+package com.lad.mmp.DerivedClasses;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;

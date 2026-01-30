@@ -4,7 +4,6 @@ package com.lad.mmp.JSONManager;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import com.lad.mmp.Main.*;
-import com.lad.mmp.Misc.SimpleStatusProperty;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;

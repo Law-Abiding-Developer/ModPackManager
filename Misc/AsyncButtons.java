@@ -1,11 +1,12 @@
 package com.lad.mmp.Misc;
 
+import com.lad.mmp.DerivedClasses.SimpleSiteProperty;
+import com.lad.mmp.DerivedClasses.SimpleStatusProperty;
 import com.lad.mmp.Main.Mod;
 import com.lad.mmp.Main.ModFolder;
 import com.lad.mmp.Main.ModPackManager;
 import com.lad.mmp.Main.ModPackManagerController;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.concurrent.Task;
 import javafx.scene.control.*;
 import javafx.stage.Modality;
@@ -17,8 +18,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
