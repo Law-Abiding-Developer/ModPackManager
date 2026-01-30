@@ -329,6 +329,6 @@ public class ModPackManager extends Application {
 
     public void modUninstallHelper()
     {
-        //CUT TODO: Implement mod uninstall
+        //TODO: Implement mod uninstall
     }
 }
