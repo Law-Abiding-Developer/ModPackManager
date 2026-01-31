@@ -12,11 +12,8 @@ public class ModPackName extends SimpleStringProperty {
         if (duplicateCount.get() > 0) return orig + " (" + duplicateCount.get() + ")";
         return orig;
     }
-    public String get(boolean getRaw)
+    public String getRaw()
     {
-        var orig = super.get();
-        if (getRaw) return orig;
-        if (duplicateCount.get() > 0) return orig + " (" + duplicateCount.get() + ")";
-        return orig;
+        return super.get();
     }
 }

@@ -287,6 +287,7 @@ public class ModPackManager extends Application {
                     Platform.runLater(() -> modpacks.getItems().remove(item));
                     if (modpacks.getItems().isEmpty()) mods.setItems(null);
                     else modpacks.getSelectionModel().select(0);
+                    item.downloadFolder.delete();
                     mods.refresh();
                 }
             }
