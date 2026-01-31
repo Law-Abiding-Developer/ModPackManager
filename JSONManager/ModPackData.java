@@ -16,13 +16,13 @@ public class ModPackData {
     public ModPackData() {}
     public ModPackData(ModPack modpack)
     {
-        name = modpack.name.get(true);
+        name = modpack.name.getRaw();
         mods = new LinkedList<>();
         for (var mod : modpack.mods)
         {
             mods.add(new ModData(mod));
         }
-        modFilePath = modpack.modFilePath.get();
+        modFilePath = modpack.modFilePath.getRaw();
         version = modpack.version.get();
         game = modpack.game.get();
         isSelected = modpack.isSelected.get();

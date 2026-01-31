@@ -143,7 +143,7 @@ public class AsyncButtons {
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++, maxProgress);
 
-                                String filePath = modPack.modFilePath.get() + File.separator + ".modpackmanager" + File.separator + mod.name.get().trim() + ".zip";
+                                String filePath = modPack.modFilePath.get() + File.separator + mod.name.get().trim() + ".zip";
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++, maxProgress);
 
@@ -399,7 +399,7 @@ public class AsyncButtons {
                                 updateProgress(pogress++, maxProgress);
 
                                 if (subnauticaLegacy)
-                                    mod.currentFile = new ModFolder(modPack.modFilePath.get() + File.separator + "QMods");
+                                    mod.currentFile = new ModFolder(modPack.modFilePath.getRaw() + File.separator + "QMods");
                                 else if (subnauticaBepinex)
                                     //mod.currentFile = new ModFolder(modPack.modFilePath.get() + File.separator + "BepInEx" + File.separator + "plugins");
                                     //CUT TODO: Manage BepInEx Installs
