@@ -348,10 +348,6 @@ public class AsyncButtons {
                         if (modPack.isDeleted) cancel(true);
                         updateProgress(pogress++, maxProgress);
 
-                        mod.backUpFile = mod.currentFile;
-                        if (modPack.isDeleted) cancel(true);
-                        updateProgress(pogress++, maxProgress);
-
                         try
                         {
                             if (modPack.isDeleted) cancel(true);
@@ -359,6 +355,10 @@ public class AsyncButtons {
 
                             if (mod.property.get())
                             {
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+
+                                mod.backUpFile = mod.currentFile;
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++, maxProgress);
 

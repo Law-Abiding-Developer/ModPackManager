@@ -115,6 +115,13 @@ public class Mod {
                     "Failed to delete selected mod, " + name.get() + "'s, file"));
                 return;
             }
+            if (backUpFile != null && !backUpFile.deleteFolder())
+            {
+                isDeleted = false;
+                Platform.runLater(() ->ModPackManagerController.showError("Mod Backup File Delete Failure",
+                    "Failed to delete selected mod, " + name.get() + "'s, backup file"));
+                return;
+            }
             Platform.runLater(() ->
             {
                 boolean removedFromList = activeList.remove(this);
