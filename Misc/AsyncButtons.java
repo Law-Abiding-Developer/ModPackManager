@@ -341,20 +341,18 @@ public class AsyncButtons {
                     updateProgress(pogress, maxProgress);
                     for (var mod : mmp.mods.getItems())
                     {
-                        Platform.runLater(() ->progress.setHeaderText("Installing " + mmp.count + " mods. You can keep"
-                                + System.lineSeparator() + "working while this is going."
-                                + System.lineSeparator() + "Installing " + mod.name.get() + "..."));
-                        var modPack = mod.parentModPack;
-                        if (modPack.isDeleted) cancel(true);
-                        updateProgress(pogress++, maxProgress);
-
                         try
                         {
-                            if (modPack.isDeleted) cancel(true);
-                            updateProgress(pogress++, maxProgress);
 
                             if (mod.property.get())
                             {
+                                Platform.runLater(() ->progress.setHeaderText("Installing " + mmp.count + " mods. You can keep"
+                                        + System.lineSeparator() + "working while this is going."
+                                        + System.lineSeparator() + "Installing " + mod.name.get() + "..."));
+                                var modPack = mod.parentModPack;
+                                if (modPack.isDeleted) cancel(true);
+                                updateProgress(pogress++, maxProgress);
+
                                 if (modPack.isDeleted) cancel(true);
                                 updateProgress(pogress++, maxProgress);
 
