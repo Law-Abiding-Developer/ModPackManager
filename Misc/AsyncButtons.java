@@ -90,12 +90,12 @@ public class AsyncButtons {
                     updateProgress(pogress, maxProgress);
                     for (var mod : mmp.mods.getItems())
                     {
-                        var modPack = mod.parentModPack;
-                        Platform.runLater(() ->progress.setHeaderText("Downloading " + mmp.count + " mods. You can keep"
-                                + System.lineSeparator() + "working while this is going."
-                                + System.lineSeparator() + "Downloading " + mod.name.get() + "..."));
                         try {
                             if (!mod.property.get()) continue;
+                            var modPack = mod.parentModPack;
+                            Platform.runLater(() ->progress.setHeaderText("Downloading " + mmp.count + " mods. You can keep"
+                                    + System.lineSeparator() + "working while this is going."
+                                    + System.lineSeparator() + "Downloading " + mod.name.get() + "..."));
                             if (modPack.isDeleted) cancel(true);
                             updateProgress(pogress++, maxProgress);
 
